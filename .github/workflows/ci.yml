@@ -26,3 +26,33 @@ jobs:
 
       - name: Test
         run: cargo test --workspace
+
+  linux:
+    name: ubuntu-22.04
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same toolchain and system packages as .github/workflows/linux-packages.yml.
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '1.97.1'
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: System dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang g++ pkg-config \
+            libasound2-dev libfontconfig-dev libssl-dev libvulkan-dev libxcb1-dev \
+            libwayland-dev libx11-xcb-dev libxkbcommon-x11-dev libbz2-dev liblzma-dev
+
+      - name: Check
+        run: cargo check --workspace
+
+      # Known Linux failures are tracked in the PR that added this job; keep this
+      # step non-blocking until they are fixed, then remove continue-on-error.
+      - name: Test
+        continue-on-error: true
+        run: cargo test --workspace --no-fail-fast
