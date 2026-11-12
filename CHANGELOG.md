@@ -7,6 +7,9 @@ Write user-facing release notes here. Release headings use
 
 ## [0.1.6-beta.1] - 2026-11-12
 
+- Keep Enter, Escape, cursor and slider keys inside the open theme color picker,
+  preventing Settings from intercepting a pasted color before confirmation.
+
 ### Fixed
 
 - Dragging files to other applications copies the originals and never starts a source-deletion operation.
