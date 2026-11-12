@@ -1,1 +1,1 @@
-Szybki menedżer plików: karty, podwójne okno, błyskawiczne wyszukiwanie, czyszczenie i prywatność.
+Menedżer plików dla Windows z kartami, panelami, wyszukiwaniem i podglądem.

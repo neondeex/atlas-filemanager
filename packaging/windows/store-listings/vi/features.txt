@@ -1,12 +1,6 @@
-• Hiệu năng vượt trội gốc: Xây dựng hoàn toàn bằng Rust với khả năng tăng tốc phần cứng qua GPU cho thời gian khởi động tức thì và phản hồi 60+ FPS mượt mà.
-• Thẻ & Hai ngăn: Đa nhiệm dễ dàng với số lượng thẻ không giới hạn và các ngăn chia tách ngang hoặc dọc linh hoạt.
-• Đa dạng chế độ xem: Chuyển đổi mượt mà giữa chế độ Danh sách chi tiết, Lưới hình thu nhỏ và Cột Miller.
-• Tìm kiếm tức thì: Tìm kiếm tệp có chỉ mục siêu tốc và lọc mờ giúp tìm tệp trên các ổ đĩa chỉ trong vài mili giây.
-• Trực quan hóa & Dọn dẹp dung lượng đĩa: Bản đồ dung lượng tương tác và công cụ dọn dẹp giúp phát hiện các tệp lớn và giải phóng bộ nhớ an toàn.
-• Kho lưu trữ mã hóa riêng tư: Bảo vệ thư mục nhạy cảm bằng mật khẩu và mã hóa cục bộ, đảm bảo quyền riêng tư tuyệt đối.
-• Bảng lệnh: Truy cập nhanh mọi lệnh, cài đặt và điều hướng qua bàn phím với phím tắt Ctrl+P.
-• Đổi tên tệp hàng loạt: Đổi tên hàng trăm tệp đồng thời bằng các mẫu tùy chỉnh, đánh số thứ tự và quy tắc thay thế.
-• Xem trước phong phú tích hợp sẵn: Xem trước tức thì mã nguồn, Markdown, PDF, hình ảnh, âm thanh, video và tệp nén.
-• Tích hợp đám mây & Mạng: Truy cập Google Drive, OneDrive, Dropbox và các ổ đĩa mạng dễ dàng từ thanh bên.
-• Tuyệt đối riêng tư: Không thu thập dữ liệu (Zero Telemetry), không theo dõi người dùng và hoạt động hoàn toàn ngoại tuyến.
-• Tùy chỉnh hồ sơ & Giao diện: Tùy biến chủ đề màu sắc, biểu tượng tệp và cài đặt cho công việc, lập trình hoặc mục đích cá nhân.
+• Tab và khung chia
+• Chế độ xem chi tiết, lưới và cột
+• Tìm kiếm tệp và lọc thư mục
+• Xem trước các định dạng được hỗ trợ
+• Hiển thị dung lượng đĩa và xem xét dọn dẹp
+• Đổi tên hàng loạt bằng mẫu và đánh số

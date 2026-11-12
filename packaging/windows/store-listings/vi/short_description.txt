@@ -1,1 +1,1 @@
-Trình quản lý tệp đa tab, hai ngăn, tìm kiếm tức thì, dọn dẹp đĩa và bảo vệ quyền riêng tư.
+Trình quản lý tệp Windows với tab, khung chia, tìm kiếm và xem trước.

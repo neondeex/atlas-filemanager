@@ -1,1 +1,1 @@
-Snelle bestandsbeheerder met tabbladen, dubbel venster, direct zoeken, opruiming en privacy.
+Bestandsbeheer voor Windows met tabbladen, gesplitste panelen, zoeken en voorbeelden.

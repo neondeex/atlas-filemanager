@@ -837,7 +837,7 @@ impl App {
     }
 
     /// Toggle the expanded (near-full-window) preview for the focused tab. Bound to
-    /// Space. Resets zoom/pan so the new size starts fitted.
+    /// Expands/collapses the preview and resets zoom/pan to fit its new size.
     pub(crate) fn toggle_preview_expanded(&mut self) {
         let tab = self.state.focused_tile;
         let v = self.preview_view.entry(tab).or_default();

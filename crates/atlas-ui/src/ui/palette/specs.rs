@@ -2291,6 +2291,13 @@ impl App {
                 Action::ToggleInspector,
             ),
             CommandDef::new(
+                "view.quick-look",
+                rust_i18n::t!("cmd_quick_look_title"),
+                rust_i18n::t!("cmd_view_inspector_desc"),
+                AtlasIcon::Eye,
+                Action::ToggleInspector,
+            ),
+            CommandDef::new(
                 "view.branch-view",
                 rust_i18n::t!("cmd_view_branch_view_title"),
                 rust_i18n::t!("cmd_view_branch_view_desc"),

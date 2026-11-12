@@ -1,1 +1,1 @@
-Fast, modern file manager with tabs, dual panes, instant search, disk cleanup, and privacy focus.
+A Windows file manager with tabs, split panes, search and file previews.

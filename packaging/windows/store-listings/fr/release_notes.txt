@@ -1,15 +1,8 @@
-Atlas Gestionnaire de fichiers 0.1.0 — Version initiale
+Atlas File Manager vous aide à parcourir et organiser vos fichiers sous Windows. Ouvrez des dossiers dans des onglets, comparez des emplacements dans des volets séparés et choisissez une vue en détails, grille ou colonnes.
 
-Bienvenue dans la toute première version officielle d'Atlas Gestionnaire de fichiers pour Windows !
-
-Points forts de cette version :
-• Performance native fulgurante : Moteur développé entièrement en Rust avec accélération GPU native DirectX pour une réactivité fluide à plus de 60 FPS et une consommation mémoire minimale.
-• Onglets et double volet : Organisez votre espace de travail avec des onglets illimités et une vue fractionnée en double volet (côte à côte ou superposée).
-• Modes d'affichage flexibles : Vue détaillée, grille de miniatures et colonnes Miller adaptées à chaque type de contenu.
-• Recherche instantanée et « Accéder à » : Filtrage approximatif ultra-rapide sur vos lecteurs locaux avec des résultats en quelques millisecondes.
-• Analyseur visuel d'espace disque : Carte interactive de l'espace de stockage pour repérer les éléments volumineux et nettoyer les fichiers temporaires en toute sécurité.
-• Dossiers privés chiffrés : Chiffrement local avec protection par mot de passe pour isoler et sécuriser vos données confidentielles.
-• Palette de commandes pour utilisateurs avancés : Accès rapide (Ctrl+P) et raccourcis configurables pour un contrôle total au clavier.
-• Renommage par lots : Outil de renommage multi-fichiers avec prévisualisation en direct, numérotation séquentielle et remplacement de motifs.
-• Volet d'aperçu multimédia intégré : Inspection instantanée d'images, de fichiers PDF, de Markdown, de code source avec coloration syntaxique, d'audio, de vidéo et d'archives.
-• Localisation française intégrale : Traduction soignée et naturelle respectant rigoureusement la terminologie standard de Windows.
+• Onglets et volets séparés
+• Vues en détails, grille et colonnes
+• Recherche de fichiers et filtres de dossiers
+• Aperçu des formats compatibles
+• Visualisation du stockage et examen avant nettoyage
+• Renommage par lots avec modèles et numérotation

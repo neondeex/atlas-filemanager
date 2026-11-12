@@ -1,5 +1,12 @@
 # Atlas File Manager — notes for the next submission
 
+The 0.1.6-beta.1 preparation declares Microsoft.VCLibs.140.00.UWPDesktop
+(minimum 14.0.24217.0) in the MSIX manifest. Microsoft Store installs and services
+that framework. App-local Visual Studio CRT DLLs are used only by the Inno
+test installer; they are not substituted for the framework in the Store MSIX.
+This is a packaging correction, not a claim that clean-Windows launch testing
+or Microsoft certification has passed. See docs/beta-bugfixes-2026-11-12.md.
+
 Review these notes against the exact submitted binary before copying them into
 Partner Center. These are preparation notes, not a record of completed testing.
 

@@ -1,12 +1,6 @@
-• Prestazioni native straordinarie: Sviluppato in Rust con accelerazione GPU per avvio istantaneo e navigazione fluida a 60+ FPS.
-• Schede e doppio riquadro: Organizza il tuo flusso di lavoro con schede illimitate e riquadri divisi in orizzontale o in verticale.
-• Molteplici modalità di visualizzazione: Passa facilmente tra visualizzazione Dettagli, Griglia miniature, Colonne (Miller) e Struttura ad albero.
-• Ricerca e filtro istantanei: Ricerca indicizzata rapidissima e filtro fuzzy in tempo reale per trovare qualsiasi file in pochi millisecondi.
-• Visualizzatore e pulizia disco: Mappa interattiva dell'occupazione del disco e pulizia sicura dei file temporanei per liberare spazio.
-• Cartelle protette con crittografia: Proteggi le cartelle riservate con password e crittografia locale per la massima riservatezza.
-• Tavolozza dei comandi: Accesso immediato da tastiera a tutti i comandi, impostazioni e percorsi tramite Ctrl+P.
-• Rinomina in blocco: Rinomina contemporaneamente centinaia di file con modelli personalizzabili, numerazione automatica e regole di sostituzione.
-• Anteprima integrata avanzata: Visualizza all'istante anteprime di documenti, PDF, codice con evidenziazione della sintassi, immagini, audio, video e archivi.
-• Integrazione Cloud e Rete: Accedi a Google Drive, OneDrive, Dropbox e unità di rete direttamente dalla barra laterale.
-• Massima privacy garantita: Nessuna telemetria, nessun tracciamento degli utenti e funzionamento completamente offline.
-• Temi e profili personalizzabili: Personalizza temi colore, icone dei file e impostazioni per il lavoro, lo sviluppo o l'uso personale.
+• Schede e pannelli divisi
+• Viste dettagli, griglia e colonne
+• Ricerca di file e filtri per cartella
+• Anteprime dei formati supportati
+• Visualizzazione dello spazio e revisione della pulizia
+• Rinomina in blocco con modelli e numerazione

@@ -284,18 +284,6 @@ impl App {
                     had = true;
                     continue;
                 }
-                DndEvent::DragOutMoved { paths } => {
-                    // Drag out of Atlas accepted as MOVE by the target: the
-                    // target copied/moved the data; remove only sources that
-                    // still exist. Already-gone paths mean the target optimized
-                    // the move itself.
-                    had = true;
-                    let existing: Vec<_> = paths.into_iter().filter(|p| p.exists()).collect();
-                    if !existing.is_empty() {
-                        self.delete_files(existing, false);
-                    }
-                    continue;
-                }
                 DndEvent::Error(msg) => {
                     had = true;
                     self.toast_error(msg);

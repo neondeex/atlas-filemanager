@@ -5,6 +5,27 @@ Write user-facing release notes here. Release headings use
 
 ## [Unreleased]
 
+## [0.1.6-beta.1] - 2026-11-12
+
+### Fixed
+
+- Dragging files to other applications copies the originals and never starts a source-deletion operation.
+- Markdown previews scroll in the same direction with smooth and precise scrolling.
+- Windows PDF previews use the native renderer even with an older Document Previews extension installed.
+- Theme color fields keep keyboard focus, accept pasted hex and HSL/HSLA values, and preserve slider precision.
+- Conversion format labels use opaque sectors and contrasting text; the selected format is highlighted immediately.
+- Windows 10 glass uses the legacy blur material instead of acrylic to avoid the native window-drag penalty.
+- Store packages declare the Microsoft Desktop VCLibs runtime dependency; the Inno installer bundles its desktop runtime.
+
+### Changed
+
+- Quick Look is listed in Commands and the shortcut editor. Space can be changed, removed or restored per profile.
+
+### Validation still required
+
+- The new Discord report of a freeze followed by repeated startup crashes needs the affected user's version and crash report.
+- Kaspersky's report (#14) requires vendor review of the exact distributed binaries. This beta does not claim an allowlist approval.
+
 ## [0.1.5] - 2026-11-05
 
 ### New

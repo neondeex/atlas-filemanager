@@ -1,12 +1,6 @@
-• Performance native exceptionnelle : Conçu de zéro en Rust avec accélération GPU pour un démarrage instantané et une fluidité constante à plus de 60 FPS.
-• Onglets et double volet : Naviguez en toute simplicité grâce aux onglets illimités et aux volets fractionnés horizontaux ou verticaux.
-• Modes d'affichage multiples : Basculez facilement entre la vue Détails haute densité, la grille de miniatures et les colonnes Miller.
-• Recherche instantanée : Indexation rapide et filtrage approximatif en temps réel pour retrouver des fichiers sur tous vos disques en quelques millisecondes.
-• Analyseur visuel d'espace disque : Carte interactive de l'espace de stockage et outils de nettoyage pour identifier les fichiers volumineux et libérer de la place.
-• Dossiers privés chiffrés : Protégez vos dossiers sensibles grâce au chiffrement local sécurisé par mot de passe pour une confidentialité absolue.
-• Palette de commandes : Accès instantané à l'ensemble des actions, paramètres et emplacements au clavier via Ctrl+P.
-• Renommage de fichiers par lots : Renommez des centaines de fichiers simultanément avec des modèles personnalisables, numérotation et recherche/remplacement.
-• Volet d'aperçu multimédia intégré : Visualisez immédiatement vos documents, code source, PDF, images, pistes audio, vidéos et archives sans ouvrir d'application tierce.
-• Intégration cloud et réseau : Accédez à vos lecteurs réseau et services cloud de manière transparente depuis la barre latérale.
-• Respect absolu de la vie privée : Zéro télémétrie, aucun suivi utilisateur et fonctionnement 100 % local et autonome.
-• Profils et thèmes personnalisables : Adaptez les thèmes de couleurs, les icônes de fichiers et les réglages selon vos contextes personnels ou professionnels.
+• Onglets et volets séparés
+• Vues en détails, grille et colonnes
+• Recherche de fichiers et filtres de dossiers
+• Aperçu des formats compatibles
+• Visualisation du stockage et examen avant nettoyage
+• Renommage par lots avec modèles et numérotation

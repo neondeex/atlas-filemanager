@@ -1,1 +1,1 @@
-Sekmeler, çift bölme, anında arama, disk temizleme ve tam gizlilik odaklı modern dosya yöneticisi.
+Sekmeler, bölünmüş paneller, arama ve önizleme sunan Windows dosya yöneticisi.

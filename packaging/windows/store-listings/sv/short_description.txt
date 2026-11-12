@@ -1,1 +1,1 @@
-Snabb filhanterare med flikar, dubbla fönster, blixtsnabb sökning, diskrensning och integritet.
+Filhanterare för Windows med flikar, delade paneler, sökning och förhandsvisning.

@@ -1633,7 +1633,8 @@ fn retrieve_window_placement(
 }
 
 fn dwm_set_window_composition_attribute(hwnd: HWND, backdrop_type: u32) {
-    let mut version = unsafe { std::mem::zeroed() };
+    let mut version = windows::Win32::System::SystemInformation::OSVERSIONINFOW::default();
+    version.dwOSVersionInfoSize = std::mem::size_of_val(&version) as u32;
     let status = unsafe { windows::Wdk::System::SystemServices::RtlGetVersion(&mut version) };
 
     // DWMWA_SYSTEMBACKDROP_TYPE is available only on version 22621 or later
@@ -1657,12 +1658,15 @@ fn dwm_set_window_composition_attribute(hwnd: HWND, backdrop_type: u32) {
 }
 
 fn set_window_composition_attribute(hwnd: HWND, color: Option<Color>, state: u32) {
-    let mut version = unsafe { std::mem::zeroed() };
+    let mut version = windows::Win32::System::SystemInformation::OSVERSIONINFOW::default();
+    version.dwOSVersionInfoSize = std::mem::size_of_val(&version) as u32;
     let status = unsafe { windows::Wdk::System::SystemServices::RtlGetVersion(&mut version) };
 
     if !status.is_ok() || version.dwBuildNumber < 17763 {
         return;
     }
+
+    let state = compatible_accent_state(version.dwBuildNumber, state);
 
     unsafe {
         type SetWindowCompositionAttributeType =
@@ -1703,6 +1707,16 @@ fn set_window_composition_attribute(hwnd: HWND, color: Option<Color>, state: u32
     }
 }
 
+fn compatible_accent_state(build: u32, requested: u32) -> u32 {
+    // Legacy Windows 10 acrylic stalls the native move/resize loop. Its blur
+    // material keeps the glass appearance without the acrylic drag penalty.
+    if build < 22000 && requested == 4 {
+        3
+    } else {
+        requested
+    }
+}
+
 // When the platform title bar is hidden, Windows may think that our application is meant to appear 'fullscreen'
 // and will stop the taskbar from appearing on top of our window. Prevent this.
 // https://devblogs.microsoft.com/oldnewthing/20250522-00/?p=111211
@@ -1716,6 +1730,17 @@ fn set_non_rude_hwnd(hwnd: HWND, non_rude: bool) {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn legacy_windows_uses_blur_without_acrylic_drag_stalls() {
+        assert_eq!(super::compatible_accent_state(19045, 4), 3);
+        assert_eq!(super::compatible_accent_state(21999, 4), 3);
+        assert_eq!(super::compatible_accent_state(22000, 4), 4);
+        assert_eq!(super::compatible_accent_state(26100, 4), 4);
+        for state in [0, 2, 3] {
+            assert_eq!(super::compatible_accent_state(19045, state), state);
+        }
+    }
+
     use super::ClickState;
     use gpui::{DevicePixels, MouseButton, point};
     use std::time::Duration;

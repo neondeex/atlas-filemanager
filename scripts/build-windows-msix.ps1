@@ -64,12 +64,11 @@ if (-not $resolvedStaging.StartsWith($allowedStaging, [System.StringComparison]:
     throw "Refusing to clean a staging path outside target/msix: $resolvedStaging"
 }
 & (Join-Path $PSScriptRoot "build-cloud-extension.ps1") -SkipBuild
-& (Join-Path $PSScriptRoot "stage-windows-runtime.ps1")
+# The Store installs and services the Desktop VCLibs framework declared in the
+# manifest. App-local Visual Studio runtime DLLs are for the Inno installer.
 Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
 $assets = New-Item -ItemType Directory -Force -Path (Join-Path $staging "Assets")
 Copy-Item -LiteralPath $exe -Destination (Join-Path $staging "atlas.exe")
-Get-ChildItem -LiteralPath (Join-Path $repo 'target\windows-runtime') -File |
-    ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination $staging }
 $serviceExe = Join-Path $repo "target\release\atlas-search-service.exe"
 if (-not (Test-Path -LiteralPath $serviceExe)) { throw "Missing search service: $serviceExe" }
 Copy-Item -LiteralPath $serviceExe -Destination (Join-Path $staging "atlas-search-service.exe")

@@ -1,12 +1,6 @@
-• Native High Performance: Built in Rust with GPU acceleration for instant startup and fluid 60+ FPS navigation.
-• Tabs & Dual Panes: Multitask effortlessly with unlimited tabs and flexible horizontal or vertical split panes.
-• Multiple View Modes: Seamlessly switch between Detailed List, Thumbnail Grid, and Miller Columns.
-• Instant Search: Lightning-fast indexed search and fuzzy filtering that finds files across drives in milliseconds.
-• Visual Disk Space Cleanup: Interactive drive visualizer and cleanup tools to identify large files and reclaim storage.
-• Encrypted Private Vaults: Secure sensitive folders with password-protected local encryption for total privacy.
-• Command Palette: Instant keyboard access to all commands, settings, and navigation destinations via Ctrl+P.
-• Batch File Renaming: Rename hundreds of files simultaneously using customizable patterns, numbering, and replacement rules.
-• Built-In Rich Previews: Instant preview for code, markdown, PDFs, images, audio, video, and compressed archives.
-• Cloud & Network Integration: Access Google Drive, OneDrive, Dropbox, and network drives seamlessly from the sidebar.
-• Privacy-First: Zero telemetry, no user tracking, and completely offline operation.
-• Customizable Profiles & Themes: Tailor color themes, file icons, and settings for work, development, or personal use.
+• Tabs and split panes
+• Details, grid and column views
+• File search and folder filtering
+• Previews for supported file formats
+• Disk usage visualization and cleanup review
+• Batch renaming with patterns and numbering

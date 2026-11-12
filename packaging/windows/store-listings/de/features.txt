@@ -1,13 +1,6 @@
-- Native Performance & minimale Latenz dank reiner Rust-Architektur und GPU-Rendering
-- Modernes Tab-System und flexible Zwei-Fenster-Ansicht (Dual-Pane, vertikal & horizontal teilbar)
-- Blitzschnelle Fuzzy-Navigation („Gehe zu“) und Volltext-Inhaltssuche (Grep)
-- Speicherplatz-Visualisierung mit interaktiver Kachelkarte und sicherer Datenträgerbereinigung
-- Hardwarenaher NTFS-Direktscan (MFT-Leser) für sofortige Indexierung
-- Integrierter Dateikonverter für Bilder, Audio, Video und Dokumente mit Radialmenü
-- Passwortgeschützte Ordner mit starker lokaler Verschlüsselung und virtuellem Einbinden
-- Mehrfachumbenennung (Batch Rename) mit Suchen & Ersetzen, Zählern und Multicursor-Modus
-- Farbiges Tagging-System für standortunabhängige Datei-Organisation
-- Seitenleiste mit anpassbaren Lesezeichen, Laufwerken und praktischer temporärer Ablageleiste
-- Vollständige Tastatursteuerung über zentrale Befehlspalette sowie optionaler Vim-Modus
-- 100 % Datenschutz ohne Telemetrie, ohne Tracker, komplett offline und lokal
-- Profilverwaltung mit individuellen Farbschemata, Symbolpaketen und Ansichtsoptionen
+• Tabs und geteilte Ansichten
+• Detail-, Raster- und Spaltenansichten
+• Dateisuche und Ordnerfilter
+• Vorschau unterstützter Dateiformate
+• Speicherplatzübersicht und Prüfung vor der Bereinigung
+• Stapelumbenennung mit Mustern und Nummerierung

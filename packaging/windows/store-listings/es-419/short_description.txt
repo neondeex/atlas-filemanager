@@ -1,1 +1,1 @@
-Administrador de archivos moderno con pestañas, panel dual, búsqueda rápida y limpieza de disco.
+Administrador de archivos para Windows con pestañas, paneles, búsqueda y vistas previas.

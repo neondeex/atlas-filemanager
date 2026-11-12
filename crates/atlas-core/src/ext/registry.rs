@@ -38,6 +38,12 @@ pub struct ToolInstallRequest {
     pub tool: ToolSpec,
 }
 
+/// Windows.Data.Pdf renders PDFs without the optional Poppler extension. Old
+/// installed document manifests must not block that fallback or download tools.
+fn native_pdf_preview(extension: &Extension, ext: &str) -> bool {
+    cfg!(windows) && extension.manifest.id == "document-previews" && ext.eq_ignore_ascii_case("pdf")
+}
+
 impl Registry {
     /// Build the registry: compiled-in builtins first, then every valid
     /// `extension.toml` under the extensions directory. `enabled` overrides the
@@ -176,6 +182,9 @@ impl Registry {
     /// `ext`. Returns the first match; required binaries must be present.
     pub fn previewer_for(&self, ext: &str) -> Option<CommandRef> {
         for extension in self.extensions.iter().filter(|e| e.enabled) {
+            if native_pdf_preview(extension, ext) {
+                continue;
+            }
             for cmd in &extension.manifest.commands {
                 if !cmd.preview {
                     continue;
@@ -194,6 +203,9 @@ impl Registry {
 
     pub fn missing_preview_tools_for(&self, ext: &str) -> Option<(String, Vec<String>)> {
         for extension in self.extensions.iter().filter(|e| e.enabled) {
+            if native_pdf_preview(extension, ext) {
+                continue;
+            }
             for cmd in &extension.manifest.commands {
                 if !cmd.preview || !cmd.accepts.matches(Some(ext), false) {
                     continue;
@@ -438,6 +450,33 @@ mod tests {
             }],
             tools: HashMap::new(),
         }
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_pdf_does_not_require_tools_from_an_old_document_manifest() {
+        let manifest = Manifest::parse(
+            r#"
+id = "document-previews"
+name = "Document Previews"
+kind = "declarative"
+[[commands]]
+id = "pdf-preview"
+title = "PDF preview"
+preview = true
+accepts = { extensions = ["pdf"] }
+requires = ["atlas-test-poppler-not-installed"]
+"#,
+        )
+        .unwrap();
+        let mut registry = registry_with(manifest);
+        assert!(registry.previewer_for("pdf").is_none());
+        assert!(registry.missing_preview_tools_for("pdf").is_none());
+        assert!(registry.missing_preview_tools_for("PDF").is_none());
+        assert!(registry.missing_preview_tool_install_for("pdf").is_none());
+        // An unrelated third-party provider still reports its own requirements.
+        registry.extensions[0].manifest.id = "custom-pdf-provider".into();
+        assert!(registry.missing_preview_tools_for("pdf").is_some());
     }
 
     #[test]

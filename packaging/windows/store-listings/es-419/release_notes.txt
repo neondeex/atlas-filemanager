@@ -1,13 +1,8 @@
-Notas de lanzamiento v0.1.0 de Atlas Administrador de Archivos:
+Atlas File Manager te ayuda a explorar, organizar y administrar archivos en Windows. Abre carpetas en pestañas, compara ubicaciones en paneles divididos y elige una vista de detalles, cuadrícula o columnas.
 
-• Rendimiento nativo de alta velocidad programado en Rust con aceleración por GPU.
-• Pestañas ilimitadas y espacio de trabajo dividido en panel dual (horizontal y vertical).
-• Modos de visualización avanzados: Lista detallada, Cuadrícula de íconos con miniaturas fluidas y Columnas Miller.
-• Motor de búsqueda instantánea indexada y filtros difusos en tiempo real.
-• Limpieza visual de espacio en disco con mapas de almacenamiento interactivos (treemaps).
-• Carpetas privadas con cifrado local protegido mediante contraseña.
-• Paleta de comandos completa (Ctrl+P) y combinaciones de teclas totalmente configurables.
-• Herramienta rápida para cambio de nombre por lotes con patrones y numeración secuencial.
-• Panel de vista previa enriquecida para documentos PDF, código fuente, archivos Markdown, imágenes, audio y video.
-• Acceso directo a servicios de almacenamiento en la nube (Google Drive, OneDrive, Dropbox) y unidades de red.
-• Privacidad total garantizada: funcionamiento 100% local, sin telemetría ni recopilación de datos.
+• Pestañas y paneles divididos
+• Vistas de detalles, cuadrícula y columnas
+• Búsqueda de archivos y filtros por carpeta
+• Vistas previas de formatos compatibles
+• Mapa de uso del disco y revisión de limpieza
+• Renombrado por lotes con patrones y numeración

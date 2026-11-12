@@ -8,6 +8,7 @@ use gpui::{
 use rust_i18n::t;
 
 mod angular;
+mod color_input;
 
 use crate::{
     ActiveTheme as _, Colorize as _, Icon, Selectable, Sizable, Size, StyleSized,
@@ -80,7 +81,7 @@ impl HslaSliders {
                 SliderState::new()
                     .min(0.)
                     .max(1.)
-                    .step(0.01)
+                    .step(1.0 / 360.0)
                     .default_value(0.)
             }),
             saturation: cx.new(|_| {
@@ -140,7 +141,6 @@ pub struct ColorPickerState {
     state: Entity<InputState>,
     hsla_sliders: HslaSliders,
     needs_slider_sync: bool,
-    suppress_input_change: bool,
     active_tab: usize,
     angular: angular::AngularState,
     open: bool,
@@ -150,9 +150,8 @@ pub struct ColorPickerState {
 impl ColorPickerState {
     /// Create a new [`ColorPickerState`].
     pub fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
-        let state = cx.new(|cx| {
-            InputState::new(window, cx).pattern(regex::Regex::new(r"^#[0-9a-fA-F]{0,8}$").unwrap())
-        });
+        // Validate complete colors on commit, allowing partial edits and paste.
+        let state = cx.new(|cx| InputState::new(window, cx));
         let hsla_sliders = HslaSliders::new(cx);
 
         let mut _subscriptions = vec![
@@ -161,19 +160,15 @@ impl ColorPickerState {
                 window,
                 |this, state, ev: &InputEvent, window, cx| match ev {
                     InputEvent::Change => {
-                        if this.suppress_input_change {
-                            this.suppress_input_change = false;
-                            return;
-                        }
                         let value = state.read(cx).value();
-                        if let Ok(color) = Hsla::parse_hex(value.as_str()) {
+                        if let Some(color) = color_input::parse(value.as_str()) {
                             this.hovered_color = Some(color);
                             this.sync_sliders(Some(color), window, cx);
                         }
                     }
                     InputEvent::PressEnter { .. } => {
                         let val = this.state.read(cx).value();
-                        if let Ok(color) = Hsla::parse_hex(&val) {
+                        if let Some(color) = color_input::parse(&val) {
                             this.open = false;
                             this.update_value(Some(color), true, window, cx);
                         }
@@ -222,7 +217,6 @@ impl ColorPickerState {
             state,
             hsla_sliders,
             needs_slider_sync: false,
-            suppress_input_change: false,
             active_tab: 0,
             angular: angular::AngularState::default(),
             open: false,
@@ -266,6 +260,11 @@ impl ColorPickerState {
         self.value
     }
 
+    /// Whether the picker popover currently owns its input and slider gestures.
+    pub fn is_open(&self) -> bool {
+        self.open
+    }
+
     fn on_confirm(&mut self, _: &Confirm, _: &mut Window, cx: &mut Context<Self>) {
         self.open = !self.open;
         cx.notify();
@@ -281,9 +280,8 @@ impl ColorPickerState {
         self.needs_slider_sync = false;
         self.value = value;
         self.hovered_color = value;
-        // Suppress the InputEvent::Change that set_value will trigger, to avoid
-        // the Hsla→hex→Hsla precision loss from feeding back into sync_sliders.
-        self.suppress_input_change = true;
+        // InputState::set_value does not emit Change. Keep slider precision
+        // without discarding the user's next real edit.
         self.state.update(cx, |view, cx| {
             if let Some(value) = value {
                 view.set_value(value.to_hex(), window, cx);
@@ -310,9 +308,8 @@ impl ColorPickerState {
         self.needs_slider_sync = false;
         self.value = Some(value);
         self.hovered_color = Some(value);
-        // Keep the hex input in sync with the slider, but suppress the resulting
-        // InputEvent::Change to avoid the Hsla→hex→Hsla precision loss loop.
-        self.suppress_input_change = true;
+        // Programmatic input updates do not emit Change, so the full-precision
+        // slider value remains authoritative until the user edits the text.
         self.state.update(cx, |view, cx| {
             view.set_value(value.to_hex(), window, cx);
         });

@@ -9,6 +9,19 @@ $repo = Split-Path $PSScriptRoot -Parent
 & python (Join-Path $repo "scripts\generate-third-party.py") --verify-release --scope desktop
 if ($LASTEXITCODE -ne 0) { throw "Third-party license verification failed." }
 
+$sourceUrl = if ($env:ATLAS_SOURCE_URL) { $env:ATLAS_SOURCE_URL } else {
+    "https://github.com/neondeex/atlas-filemanager/releases/download/v$Version/atlas-$Version-source.zip"
+}
+$installerDirectory = Join-Path $repo 'target\installer'
+New-Item -ItemType Directory -Force -Path $installerDirectory | Out-Null
+@"
+Atlas $Version corresponding source and build instructions:
+$sourceUrl
+The matching atlas-$Version-source.zip accompanies this test distribution.
+Atlas: AGPL-3.0-or-later. Third-party components retain their own licenses.
+See RCLONE-THIRD-PARTY-NOTICES.txt for the bundled rclone dependency notices.
+"@ | Set-Content -LiteralPath (Join-Path $installerDirectory 'SOURCE-CODE.txt') -Encoding UTF8
+
 if (-not $SkipBuild) {
 if ($PerfLog) {
     cargo build --release --locked -p atlas -p atlas-search-service -p atlas-cloud-extension -p atlas-icon-extension --features perf-log

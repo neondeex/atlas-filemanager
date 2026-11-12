@@ -58,6 +58,7 @@ pub(crate) const COMMANDS: &[CommandMeta] = &[
     CommandMeta::remappable("view.hidden", Some("ctrl-.")),
     CommandMeta::remappable("view.vim-mode", None),
     CommandMeta::remappable("view.inspector", Some("ctrl-i")),
+    CommandMeta::remappable("view.quick-look", Some("space")),
     CommandMeta::remappable("view.branch-view", Some("ctrl-b")),
     CommandMeta::remappable("view.sidebar", None),
     CommandMeta::remappable("view.sidebar-collapse", Some("ctrl-alt-b")),
