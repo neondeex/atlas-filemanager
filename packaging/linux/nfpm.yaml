@@ -39,6 +39,8 @@ contents:
     dst: /usr/share/licenses/atlas/LICENSE
   - src: legal/THIRD-PARTY-NOTICES.txt
     dst: /usr/share/doc/atlas/THIRD-PARTY-NOTICES.txt
+  - src: ${ATLAS_PACKAGE_DATA}/SOURCE-CODE.txt
+    dst: /usr/share/doc/atlas/SOURCE-CODE.txt
 overrides:
   deb:
     depends:

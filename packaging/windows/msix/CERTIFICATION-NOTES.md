@@ -70,3 +70,28 @@ Confirm in the actual submission:
 Additional bundled-tool evidence: RCLONE-THIRD-PARTY-NOTICES.txt covers the recorded Go modules in rclone v1.74.4; matching tool-source parts and checksums are linked at https://atlasfm.modhyt.org/source-code.
 
 Local release validation and remaining UAC/runtime checks are recorded in docs/release-0.1.1-2026-10-31.md. These are not claims of a WACK pass or Microsoft approval.
+
+
+Runtime dependency correction prepared on 2026-11-12:
+
+the source manifest now declares Microsoft.VCLibs.140.00.UWPDesktop,
+
+MinVersion 14.0.24217.0, published by Microsoft. The framework is installed and
+
+updated through Microsoft Store. Atlas and its three Rust companion executables
+
+in the inspected 0.1.5.0 MSIX import VCRUNTIME140.dll; that existing MSIX omitted
+
+the dependency. The manifest change applies to future packages, not to the
+
+already uploaded 0.1.5.0 artifact. Do not claim the submitted package is fixed
+
+until a new package has been built, inspected and tested on clean Windows.
+
+For a local sideload test, supply the matching x64 Desktop VCLibs framework to
+
+Add-AppxPackage with -DependencyPath. The generic UWP VCLibs package and a
+
+machine-wide vc_redist installation are not substitutes for this declaration.
+
+Reference: https://learn.microsoft.com/en-us/troubleshoot/developer/visualstudio/cpp/libraries/c-runtime-packages-desktop-bridge

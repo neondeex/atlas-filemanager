@@ -6,6 +6,12 @@ on:
       version:
         type: string
         required: true
+      edition:
+        type: string
+        default: full
+      source-url:
+        type: string
+        default: ''
     outputs:
       version:
         value: ${{ jobs.build.outputs.version }}
@@ -15,6 +21,11 @@ on:
         description: Version with an entry in CHANGELOG.md (without v)
         required: true
         default: '0.1.5'
+      edition:
+        description: Edition for this build
+        type: choice
+        options: [free, full]
+        default: free
 
 permissions:
   contents: read
@@ -23,6 +34,10 @@ jobs:
   build:
     name: Build Linux x86_64 (glibc 2.35)
     runs-on: ubuntu-22.04
+    env:
+      ATLAS_EDITION: ${{ inputs.edition }}
+      ATLAS_POLAR_ORG_ID: eec2eec8-cbfd-4967-ba65-ca98e824cce0
+      INPUT_SOURCE_URL: ${{ inputs.source-url }}
     outputs:
       version: ${{ steps.metadata.outputs.version }}
       test-matrix: ${{ steps.metadata.outputs.test-matrix }}
@@ -46,9 +61,19 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
+          if [ "$ATLAS_EDITION" != free ] && [ "$ATLAS_EDITION" != full ]; then
+            echo 'Edition must be free or full' >&2
+            exit 1
+          fi
           version="$INPUT_VERSION"
           if [ -z "$version" ]; then
             version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n1)
+          fi
+          source_url="${INPUT_SOURCE_URL:-https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID}"
+          echo "ATLAS_SOURCE_URL=$source_url" >> "$GITHUB_ENV"
+          if [[ "$source_url" == *'/actions/runs/'* ]]; then
+            export ATLAS_CANDIDATE_URL="$source_url"
+            echo "ATLAS_CANDIDATE_URL=$source_url" >> "$GITHUB_ENV"
           fi
           python3 scripts/linux_release.py metadata --version "$version"
           python3 -c 'import json; print("test-matrix=" + json.dumps(json.load(open("packaging/linux/test-matrix.json"))))' >> "$GITHUB_OUTPUT"
@@ -62,7 +87,10 @@ jobs:
       - name: Verify desktop notices
         run: python3 scripts/generate-third-party.py --verify-release --scope desktop
       - name: Build release
-        run: cargo build --release --locked -p atlas -p atlas-search-service -p atlas-cloud-extension -p atlas-icon-extension
+        run: |
+          features=()
+          if [ "$ATLAS_EDITION" = free ]; then features=(--features free); fi
+          cargo build --release --locked -p atlas -p atlas-search-service -p atlas-cloud-extension -p atlas-icon-extension "${features[@]}"
       - name: Check ELF portability
         run: |
           target/release/atlas --version

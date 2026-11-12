@@ -7,11 +7,11 @@
   },
   "outputs": {
     "website/src/lib/legal-documents.json": "e90f624dc909b1393b9f18bbfb9dd919c9eb4d4a72a9fadcb069c54cf3307db9",
-    "website-edge/public/privacy-policy.html": "e2203a101f9017a93892526e4aac15fc790acf9a47048a15bcaf36929780760e",
+    "website-edge/public/privacy-policy.html": "4db3204c227b2cd0e029af941539c4597ce89bb9519deed6313155b6bd9fcf4a",
     "website/src/app/privacy-policy/page.tsx": "91b63658421dbc0d933fe93d0c81c7158381d8a2e50018ef6e8d3f836b42c251",
-    "website-edge/public/terms-of-service.html": "5e6ba5f4ec1f49edb8565ca5adcf51aa74eb7fc9caecba03edf4902355d6b364",
+    "website-edge/public/terms-of-service.html": "bc2e79e7e6daf494af26cffe524dff65455569320afcf9e7b50e196e7688e69a",
     "website/src/app/terms-of-service/page.tsx": "bf83f213d10c2795279693075b90ae65ca1e686c906d16dad8185c7262644886",
-    "website-edge/public/third-party-licenses.html": "9a4ad2fe6e739792a625f8bc1e24f065212f5eea1856908748543a2aff0b8314",
+    "website-edge/public/third-party-licenses.html": "052d2052310b650e55712750492c9a9f199f08b9e9a2221df06ed14ac75a8595",
     "website/src/app/third-party-licenses/page.tsx": "59ba249d1c42f367acca3d781984a8a597cd79ee8c47b14460db89336d199099",
     "website/public/privacy-choices.js": "eead505dca14877cf1c7f41a3b74b40bd2577a8aff38cbc30477c0ed978e823c",
     "website-edge/public/privacy-choices.js": "eead505dca14877cf1c7f41a3b74b40bd2577a8aff38cbc30477c0ed978e823c",
@@ -20,6 +20,6 @@
     "website/public/legal/build-manifest.json": "c4c3cea100bc275a7d789527045b23b61d159d6279e169d4173ad9900be14959",
     "website-edge/public/legal/RCLONE-THIRD-PARTY-NOTICES.txt": "ef87c591a9652e30a86121a4f47d4920822dc88a970de06c452b5cb731f13a18",
     "website-edge/scripts/check-legal.mjs": "42cdc17c4b60e7220c7477900070824ab82f46c4dee85f411824d6db776c5536",
-    "website-edge/public/legal/build-manifest.json": "1569d76781eab380b64e5e8e47f9dbe9af4cd8711a1cd5c242b1a8ee88a8487f"
+    "website-edge/public/legal/build-manifest.json": "f532cee6470e877704a0d7e6e1cbbb3d32259c8a56bbced499a555d79f08da4e"
   }
 }

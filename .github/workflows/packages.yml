@@ -8,10 +8,10 @@ on:
         required: true
         default: '0.1.5'
       edition:
-        description: Windows edition (free for Store baseline, full for unrestricted builds)
+        description: Edition for all platforms (free for the Store baseline)
         type: choice
         options: [full, free]
-        default: full
+        default: free
       platform:
         description: Platforms to package
         type: choice
@@ -32,9 +32,12 @@ jobs:
     with:
       version: ${{ inputs.version }}
       edition: ${{ inputs.edition }}
+      source-url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
       reuse-run-id: ${{ inputs.windows-binaries-run }}
   linux:
     if: inputs.platform != 'windows'
     uses: ./.github/workflows/linux-packages.yml
     with:
       version: ${{ inputs.version }}
+      edition: ${{ inputs.edition }}
+      source-url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

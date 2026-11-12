@@ -1,4 +1,4 @@
-"""Prepare a reviewed, secret-free source archive for the Windows release.
+"""Prepare a reviewed, secret-free source archive for the desktop release.
 
 First run cargo vendor --locked --versioned-dirs with the directory reported
 by --vendor-dir, saving Cargo's config output as target/source-vendor-config.toml.
@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import zipfile
 from pathlib import Path
@@ -69,7 +70,9 @@ def build(version: str, source_url: str | None = None):
     local_config = (ROOT / ".cargo/config.toml").read_text(encoding="utf-8")
     generated = {".cargo/config.toml": (local_config + "\n" + config).encode()}
     source_url = source_url or f"https://pub-89dd9e8d0b06444ca2f59e0dc245dbc9.r2.dev/source/atlas-{version}-source.zip"
-    generated["SOURCE-README.txt"] = f"""Atlas {version} — corresponding Windows release source
+    edition = os.environ.get("ATLAS_EDITION", "free")
+    features = "--features free" if edition == "free" else ""
+    generated["SOURCE-README.txt"] = f"""Atlas {version} — corresponding Windows and Linux source
 
 This snapshot includes uncommitted/local changes used for this release. Atlas
 code remains AGPL-3.0-or-later; dependencies retain their licenses. See LICENSE
@@ -92,7 +95,16 @@ provided in preferred editable source form.
 In PowerShell, set the release identifiers and build:
   $env:ATLAS_RELEASE_VERSION = '{version}'
   $env:ATLAS_SOURCE_URL = '{source_url}'
-  cargo build --release --locked --offline -p atlas -p atlas-search-service -p atlas-cloud-extension -p atlas-icon-extension
+  cargo build --release --locked --offline -p atlas -p atlas-search-service -p atlas-cloud-extension -p atlas-icon-extension {features}
+
+BUILD ON LINUX x86_64
+Use Rust 1.97.1, clang/g++, pkg-config and development packages for ALSA,
+Fontconfig, OpenSSL, Vulkan, XCB, Wayland and xkbcommon-x11. Recover the licensed
+artwork from the matching Windows executable/MSIX as described above, then:
+  export ATLAS_RELEASE_VERSION='{version}'
+  export ATLAS_SOURCE_URL='{source_url}'
+  cargo build --release --locked --offline -p atlas -p atlas-search-service -p atlas-cloud-extension -p atlas-icon-extension {features}
+All three distribution formats use the same source revision. Edition: {edition}.
 
 The MSIX manifest version for this release is {msix_version}. Packaging uses the
 official rclone archive pinned by scripts/build-cloud-extension.ps1. That tool

@@ -137,6 +137,17 @@ jobs:
       - name: Package instructions and checksums
         shell: pwsh
         run: |
+          $provenance = @{
+            version = $env:ATLAS_VERSION
+            edition = $env:ATLAS_EDITION
+            revision = $env:GITHUB_SHA
+            workflow = "https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+            profile = 'release'
+            installerInstallStartupUninstall = 'passed'
+          } | ConvertTo-Json
+          foreach ($folder in Get-ChildItem target/windows-dist -Directory) {
+            $provenance | Set-Content -Encoding utf8 (Join-Path $folder.FullName 'BUILD-PROVENANCE.json')
+          }
           Copy-Item docs/package-downloads.md target/windows-dist/installer/README.md
           Copy-Item docs/package-downloads.md target/windows-dist/msix-unsigned/README.md
           Copy-Item docs/package-downloads.md target/windows-dist/msix-test/README.md
