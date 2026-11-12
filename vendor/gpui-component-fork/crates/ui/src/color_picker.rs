@@ -11,7 +11,7 @@ mod angular;
 mod color_input;
 
 use crate::{
-    ActiveTheme as _, Colorize as _, Icon, Selectable, Sizable, Size, StyleSized,
+    ActiveTheme as _, Colorize, Icon, Selectable, Sizable, Size, StyleSized,
     actions::Confirm,
     h_flex,
     input::{Input, InputEvent, InputState},
