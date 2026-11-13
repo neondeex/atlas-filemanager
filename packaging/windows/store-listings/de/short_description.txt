@@ -1,1 +1,1 @@
-Dateimanager für Windows mit Tabs, geteilten Ansichten, Suche und Dateivorschau.
+Dateimanager für Windows mit Tabs, geteilten Ansichten, Unterordnersuche, Vorschau und ZIP.

@@ -1,1 +1,1 @@
-A Windows file manager with tabs, split panes, search and file previews.
+File manager for Windows with tabs, split panes, subfolder search, previews and ZIP browsing.

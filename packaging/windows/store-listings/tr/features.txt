@@ -1,6 +1,13 @@
-• Sekmeler ve bölünmüş paneller
-• Ayrıntı, ızgara ve sütun görünümleri
-• Dosya arama ve klasör filtreleri
-• Desteklenen dosya biçimlerinin önizlemesi
-• Disk kullanımı görünümü ve temizlik incelemesi
+• Her biri kendi görünümünü ve geçmişini koruyan sekmeler ve bölünmüş paneller
+• Bir klasörde ve tüm alt klasörlerinde arama
+• Görüntü, PDF, Markdown, metin ve kod önizlemesi dosya listesinin yanında
+• Biçim halkasından dönüştürme, örneğin JPG'den PNG, WebP veya PDF'ye
+• ZIP arşivlerini klasör gibi açma ve içeriği önizleme
+• Ayrıntı, ızgara, liste, sütun ve ağaç görünümleri
+• Tüm işlemleri ve kısayollarını gösteren komut paleti
+• Değiştirilebilir klavye kısayolları ve aranabilir ayarlar
+• Kenar çubuğunda Google Drive, OneDrive, SFTP, FTP, WebDAV ve SMB
+• Canlı önizlemeli açık, koyu ve cam temalar
+• Temizlikten önce büyük klasörleri incelemek için disk kullanım haritası
 • Desen ve numaralandırma ile toplu ad değiştirme
+• İsteğe bağlı: Dosya Gezgini yerine Win+E ile Atlas'ı açma

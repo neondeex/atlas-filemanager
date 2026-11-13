@@ -1,6 +1,13 @@
-• Onglets et volets séparés
-• Vues en détails, grille et colonnes
-• Recherche de fichiers et filtres de dossiers
-• Aperçu des formats compatibles
-• Visualisation du stockage et examen avant nettoyage
+• Onglets et volets séparés, chacun avec sa propre vue et son historique
+• Recherche dans un dossier et tous ses sous-dossiers
+• Aperçu des images, PDF, Markdown, textes et code à côté de la liste
+• Conversion depuis un anneau de formats, par exemple JPG vers PNG, WebP ou PDF
+• Archives ZIP ouvertes comme des dossiers, avec aperçu du contenu
+• Vues détails, grille, liste, colonnes et arborescence
+• Palette de commandes avec chaque action et son raccourci clavier
+• Raccourcis clavier personnalisables et paramètres consultables par recherche
+• Google Drive, OneDrive, SFTP, FTP, WebDAV et SMB dans la barre latérale
+• Thèmes clairs, sombres et translucides avec aperçu en direct
+• Carte de l’espace disque pour examiner les gros dossiers avant le nettoyage
 • Renommage par lots avec modèles et numérotation
+• En option : ouvrir Atlas avec Win+E à la place de l’Explorateur de fichiers

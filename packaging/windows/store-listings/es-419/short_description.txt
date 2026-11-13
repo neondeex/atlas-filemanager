@@ -1,1 +1,1 @@
-Administrador de archivos para Windows con pestañas, paneles, búsqueda y vistas previas.
+Administrador de archivos para Windows con pestañas, paneles, búsqueda, vistas previas y ZIP.

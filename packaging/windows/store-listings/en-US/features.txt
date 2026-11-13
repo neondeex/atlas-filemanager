@@ -1,6 +1,13 @@
-• Tabs and split panes
-• Details, grid and column views
-• File search and folder filtering
-• Previews for supported file formats
-• Disk usage visualization and cleanup review
-• Batch renaming with patterns and numbering
+• Tabs and split panes, each with its own view and history
+• Search a folder and all of its subfolders
+• Preview images, PDFs, Markdown, text and code beside the file list
+• Convert files from a format ring, for example JPG to PNG, WebP or PDF
+• Open ZIP archives like folders and preview their contents
+• Details, grid, list, column and tree views
+• Command palette with every action and its keyboard shortcut
+• Remappable keyboard shortcuts and searchable settings
+• Google Drive, OneDrive, SFTP, FTP, WebDAV and SMB in the sidebar
+• Light, dark and glass themes with live preview
+• Disk usage map to review large folders before cleaning up
+• Batch rename with patterns and numbering
+• Optional: open Atlas with Win+E instead of File Explorer

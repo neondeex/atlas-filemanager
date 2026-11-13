@@ -1,6 +1,13 @@
-• Abas e painéis divididos
-• Visualizações de detalhes, grade e colunas
-• Pesquisa de arquivos e filtros por pasta
-• Prévia de formatos compatíveis
-• Mapa de uso do disco e revisão de limpeza
+• Abas e painéis divididos, cada um com sua própria visualização e histórico
+• Pesquisa em uma pasta e em todas as suas subpastas
+• Prévia de imagens, PDFs, Markdown, texto e código ao lado da lista
+• Conversão a partir de um anel de formatos, por exemplo JPG para PNG, WebP ou PDF
+• Arquivos ZIP abertos como pastas, com prévia do conteúdo
+• Visualizações de detalhes, grade, lista, colunas e árvore
+• Paleta de comandos com todas as ações e seus atalhos
+• Atalhos de teclado personalizáveis e configurações pesquisáveis
+• Google Drive, OneDrive, SFTP, FTP, WebDAV e SMB na barra lateral
+• Temas claros, escuros e translúcidos com prévia ao vivo
+• Mapa de uso do disco para revisar pastas grandes antes de limpar
 • Renomeação em lote com padrões e numeração
+• Opcional: abrir o Atlas com Win+E em vez do Explorador de Arquivos

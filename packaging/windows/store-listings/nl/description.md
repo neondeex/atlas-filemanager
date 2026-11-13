@@ -1,11 +1,18 @@
-Atlas File Manager helpt bij het bekijken en ordenen van bestanden in Windows. Open mappen in tabbladen, vergelijk locaties in gesplitste panelen en kies een detail-, raster- of kolomweergave.
+Atlas File Manager is een bestandsverkenner voor Windows. Open mappen in tabbladen, werk met twee panelen naast elkaar, zoek in submappen en bekijk bestanden zonder het venster te verlaten. De meeste acties hebben een sneltoets en elke opdracht is via één zoekopdracht te vinden.
 
-• Tabbladen en gesplitste panelen
-• Detail-, raster- en kolomweergaven
-• Bestanden zoeken en mappen filteren
-• Voorbeelden van ondersteunde bestandsindelingen
-• Schijfgebruik bekijken en opschoning beoordelen
+• Tabbladen en gesplitste panelen, elk met een eigen weergave en geschiedenis
+• Zoeken in een map en al haar submappen
+• Voorbeelden van afbeeldingen, pdf’s, Markdown, tekst en code naast de lijst
+• Bestanden converteren vanuit een formaatring, bijvoorbeeld JPG naar PNG, WebP of PDF
+• ZIP-archieven openen als mappen en de inhoud bekijken
+• Detail-, raster-, lijst-, kolom- en boomweergave
+• Opdrachtpalet met elke actie en de bijbehorende sneltoets
+• Aanpasbare sneltoetsen en doorzoekbare instellingen
+• Google Drive, OneDrive, SFTP, FTP, WebDAV en SMB in de zijbalk
+• Lichte, donkere en transparante thema’s met live voorbeeld
+• Overzicht van schijfgebruik om grote mappen te bekijken voordat u opruimt
 • Meerdere bestanden hernoemen met patronen en nummering
+• Optioneel: Atlas openen met Win+E in plaats van Verkenner
 
 Free biedt maximaal 2 panelen, 1 opgeslagen verbinding en 2 profielen. Hernoemen: maximaal 25 bestanden per bewerking. Conversie: 1 bronbestand per bewerking en 10 geconverteerde bestanden per dag. Premium heft deze editiegrenzen op en wordt apart aangeschaft.
 

@@ -1,1 +1,1 @@
-Trình quản lý tệp Windows với tab, khung chia, tìm kiếm và xem trước.
+Trình quản lý tệp Windows với tab, khung chia, tìm trong thư mục con, xem trước và ZIP.

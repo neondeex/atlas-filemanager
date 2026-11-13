@@ -1,6 +1,13 @@
-• Flikar och delade paneler
-• Detalj-, rutnäts- och kolumnvyer
-• Filsökning och mappfilter
-• Förhandsvisning av format som stöds
-• Visa diskutrymme och granska rensning
+• Flikar och delade paneler, var och en med egen vy och historik
+• Sökning i en mapp och alla dess undermappar
+• Förhandsvisning av bilder, PDF, Markdown, text och kod bredvid fillistan
+• Konvertera filer från en formatring, till exempel JPG till PNG, WebP eller PDF
+• Öppna ZIP-arkiv som mappar och förhandsvisa innehållet
+• Detalj-, rutnäts-, list-, kolumn- och trädvy
+• Kommandopalett med varje åtgärd och dess kortkommando
+• Anpassningsbara kortkommandon och sökbara inställningar
+• Google Drive, OneDrive, SFTP, FTP, WebDAV och SMB i sidofältet
+• Ljusa, mörka och genomskinliga teman med direkt förhandsvisning
+• Karta över diskanvändning för att granska stora mappar före rensning
 • Byt namn på flera filer med mönster och numrering
+• Valfritt: öppna Atlas med Win+E i stället för Utforskaren

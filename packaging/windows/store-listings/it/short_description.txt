@@ -1,1 +1,1 @@
-Gestore file per Windows con schede, pannelli divisi, ricerca e anteprime.
+Gestore file per Windows con schede, pannelli, ricerca nelle sottocartelle, anteprime e ZIP.

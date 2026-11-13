@@ -1,1 +1,1 @@
-Bestandsbeheer voor Windows met tabbladen, gesplitste panelen, zoeken en voorbeelden.
+Bestandsbeheer voor Windows met tabbladen, panelen, zoeken in submappen, voorbeelden en ZIP.

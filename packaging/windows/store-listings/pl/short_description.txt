@@ -1,1 +1,1 @@
-Menedżer plików dla Windows z kartami, panelami, wyszukiwaniem i podglądem.
+Menedżer plików dla Windows: karty, panele, wyszukiwanie w podfolderach, podgląd i ZIP.

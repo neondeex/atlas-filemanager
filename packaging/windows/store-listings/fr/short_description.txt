@@ -1,1 +1,1 @@
-Gestionnaire de fichiers Windows avec onglets, volets, recherche et aperçus.
+Gestionnaire de fichiers Windows : onglets, volets, recherche, aperçus et archives ZIP.

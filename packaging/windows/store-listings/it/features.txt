@@ -1,6 +1,13 @@
-• Schede e pannelli divisi
-• Viste dettagli, griglia e colonne
-• Ricerca di file e filtri per cartella
-• Anteprime dei formati supportati
-• Visualizzazione dello spazio e revisione della pulizia
+• Schede e pannelli divisi, ciascuno con la propria vista e cronologia
+• Ricerca in una cartella e in tutte le sue sottocartelle
+• Anteprima di immagini, PDF, Markdown, testo e codice accanto all’elenco
+• Conversione da un anello di formati, ad esempio da JPG a PNG, WebP o PDF
+• Archivi ZIP che si aprono come cartelle, con anteprima del contenuto
+• Viste dettagli, griglia, elenco, colonne e albero
+• Tavolozza dei comandi con ogni azione e la relativa scorciatoia
+• Scorciatoie da tastiera personalizzabili e impostazioni con ricerca
+• Google Drive, OneDrive, SFTP, FTP, WebDAV e SMB nella barra laterale
+• Temi chiari, scuri e traslucidi con anteprima in tempo reale
+• Mappa dello spazio su disco per esaminare le cartelle grandi prima della pulizia
 • Rinomina in blocco con modelli e numerazione
+• Opzionale: aprire Atlas con Win+E al posto di Esplora file

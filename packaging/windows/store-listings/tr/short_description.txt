@@ -1,1 +1,1 @@
-Sekmeler, bölünmüş paneller, arama ve önizleme sunan Windows dosya yöneticisi.
+Sekmeler, paneller, alt klasör araması, önizleme ve ZIP desteğiyle Windows dosya yöneticisi.

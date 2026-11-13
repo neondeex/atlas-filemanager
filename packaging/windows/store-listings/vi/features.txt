@@ -1,6 +1,13 @@
-• Tab và khung chia
-• Chế độ xem chi tiết, lưới và cột
-• Tìm kiếm tệp và lọc thư mục
-• Xem trước các định dạng được hỗ trợ
-• Hiển thị dung lượng đĩa và xem xét dọn dẹp
+• Tab và khung chia, mỗi khung có chế độ xem và lịch sử riêng
+• Tìm kiếm trong một thư mục và tất cả thư mục con
+• Xem trước hình ảnh, PDF, Markdown, văn bản và mã bên cạnh danh sách tệp
+• Chuyển đổi từ vòng định dạng, ví dụ JPG sang PNG, WebP hoặc PDF
+• Mở tệp nén ZIP như thư mục và xem trước nội dung
+• Chế độ xem chi tiết, lưới, danh sách, cột và cây
+• Bảng lệnh liệt kê mọi thao tác cùng phím tắt
+• Phím tắt có thể thay đổi và cài đặt có thể tìm kiếm
+• Google Drive, OneDrive, SFTP, FTP, WebDAV và SMB trên thanh bên
+• Giao diện sáng, tối và kính với xem trước trực tiếp
+• Bản đồ dung lượng đĩa để xem lại thư mục lớn trước khi dọn dẹp
 • Đổi tên hàng loạt bằng mẫu và đánh số
+• Tùy chọn: mở Atlas bằng Win+E thay cho File Explorer
