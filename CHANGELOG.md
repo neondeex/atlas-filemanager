@@ -5,6 +5,22 @@ Write user-facing release notes here. Release headings use
 
 ## [Unreleased]
 
+## [0.1.6-beta.2] - 2026-11-13
+
+### Fixed
+
+- Closing Atlas with the window's close button saves tabs, panes and grouping. Previously only
+  Ctrl+Q or the one-minute checkpoint saved them.
+- Dragging a file that was not selected yet moves it instead of drawing a selection box.
+  In Details, dragging from the other columns still draws the box.
+
+### New
+
+- Each pane has a preview button next to the address bar, so the preview panel no longer
+  depends on knowing the Space shortcut.
+- Sort by name, date modified, size or type, and reverse the order, from the command palette.
+  Running the same sort again flips its direction.
+
 ## [0.1.6-beta.1] - 2026-11-12
 
 - Keep Enter, Escape, cursor and slider keys inside the open theme color picker,

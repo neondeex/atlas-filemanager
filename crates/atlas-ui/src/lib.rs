@@ -368,6 +368,11 @@ pub fn run(
                 closing_app
                     .update(cx, |app, cx| {
                         let allowed = app.close_native_vault(false);
+                        // The title-bar close destroys the window (and this
+                        // view) before `on_app_quit` runs, so persist here.
+                        if allowed {
+                            app.save_on_quit();
+                        }
                         cx.notify();
                         allowed
                     })

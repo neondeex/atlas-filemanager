@@ -527,6 +527,13 @@ impl App {
             "view.list" => Some(Action::SetViewMode(ViewMode::List)),
             "view.miller" => Some(Action::SetViewMode(ViewMode::Miller)),
             "view.tree" => Some(Action::SetViewMode(ViewMode::Tree)),
+            "view.sort-name" => Some(Action::SortBy(atlas_model::file_entry::SortColumn::Name)),
+            "view.sort-modified" => Some(Action::SortBy(
+                atlas_model::file_entry::SortColumn::Modified,
+            )),
+            "view.sort-size" => Some(Action::SortBy(atlas_model::file_entry::SortColumn::Size)),
+            "view.sort-type" => Some(Action::SortBy(atlas_model::file_entry::SortColumn::Kind)),
+            "view.sort-reverse" => Some(Action::ReverseSort),
             "view.group-none" => Some(Action::SetGroupBy(atlas_model::tab::GroupBy::None)),
             "view.group-date" => Some(Action::SetGroupBy(atlas_model::tab::GroupBy::Date)),
             "view.group-size" => Some(Action::SetGroupBy(atlas_model::tab::GroupBy::Size)),
