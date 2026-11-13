@@ -59,6 +59,7 @@ jobs:
     uses: ./.github/workflows/linux-packages.yml
     with:
       version: ${{ needs.metadata.outputs.version }}
+      source-url: https://github.com/${{ github.repository }}/releases/download/v${{ needs.metadata.outputs.version }}/atlas-${{ needs.metadata.outputs.version }}-source.zip
 
   publish:
     name: Publish verified GitHub release

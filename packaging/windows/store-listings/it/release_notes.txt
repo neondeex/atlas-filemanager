@@ -1,15 +1,8 @@
-Atlas Gestore file 0.1.0 — Versione iniziale
+Atlas File Manager aiuta a esplorare e organizzare i file su Windows. Apri le cartelle in schede, confronta le posizioni in pannelli divisi e scegli la vista dettagli, griglia o colonne.
 
-Benvenuto alla prima versione ufficiale di Atlas Gestore file per Windows!
-
-Caratteristiche principali:
-• Prestazioni native straordinarie: Sviluppato da zero in Rust con accelerazione grafica nativa DirectX/GPU per una reattività fluida a 60+ FPS e un consumo di memoria ridotto al minimo.
-• Schede e doppio riquadro: Organizza il tuo flusso di lavoro con schede illimitate e riquadri divisi affiancati o sovrapposti.
-• Modalità di visualizzazione flessibili: Elenco dettagliato, griglia di miniature, visualizzazione a colonne Miller e struttura ad albero.
-• Ricerca istantanea e barra Vai a: Filtro fuzzy in tempo reale su tutte le unità locali con risposte in millisecondi.
-• Analizzatore visivo dello spazio su disco: Mappa interattiva dell'occupazione del disco per individuare i file più pesanti e pulire i temporanei in sicurezza.
-• Cartelle protette con crittografia: Protezione delle cartelle sensibili tramite password e crittografia locale per isolare e proteggere i tuoi dati privati.
-• Tavolozza dei comandi per utenti esperti: Accesso rapido tramite Ctrl+P e scorciatoie da tastiera completamente personalizzabili.
-• Rinomina in blocco: Rinomina contemporaneamente centinaia di file con numerazione in sequenza, trova e sostituisci e anteprima live.
-• Anteprima avanzata integrata: Ispezione istantanea di immagini, PDF, file Markdown, codice sorgente con evidenziazione sintattica, audio, video e archivi.
-• Localizzazione italiana completa: Traduzione integrale conforme alle convenzioni standard di Windows desktop.
+• Schede e pannelli divisi
+• Viste dettagli, griglia e colonne
+• Ricerca di file e filtri per cartella
+• Anteprime dei formati supportati
+• Visualizzazione dello spazio e revisione della pulizia
+• Rinomina in blocco con modelli e numerazione

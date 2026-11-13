@@ -54,7 +54,6 @@ const RESERVED_STATIC_SHORTCUTS: &[&str] = &[
     "ctrl-tab",
     "ctrl-shift-tab",
     "ctrl-f",
-    "space",
     "escape",
     "alt-tab",
     "ctrl-r",
@@ -519,7 +518,7 @@ impl App {
             }),
             "view.hidden" => Some(Action::ToggleHidden),
             "view.vim-mode" => Some(Action::ToggleVimMode),
-            "view.inspector" => Some(Action::ToggleInspector),
+            "view.inspector" | "view.quick-look" => Some(Action::ToggleInspector),
             "view.branch-view" => Some(Action::ToggleBranchViewFocused),
             "view.sidebar" => Some(Action::ToggleSidebar),
             "view.sidebar-collapse" => Some(Action::ToggleSidebarCollapsed),
@@ -528,6 +527,13 @@ impl App {
             "view.list" => Some(Action::SetViewMode(ViewMode::List)),
             "view.miller" => Some(Action::SetViewMode(ViewMode::Miller)),
             "view.tree" => Some(Action::SetViewMode(ViewMode::Tree)),
+            "view.sort-name" => Some(Action::SortBy(atlas_model::file_entry::SortColumn::Name)),
+            "view.sort-modified" => Some(Action::SortBy(
+                atlas_model::file_entry::SortColumn::Modified,
+            )),
+            "view.sort-size" => Some(Action::SortBy(atlas_model::file_entry::SortColumn::Size)),
+            "view.sort-type" => Some(Action::SortBy(atlas_model::file_entry::SortColumn::Kind)),
+            "view.sort-reverse" => Some(Action::ReverseSort),
             "view.group-none" => Some(Action::SetGroupBy(atlas_model::tab::GroupBy::None)),
             "view.group-date" => Some(Action::SetGroupBy(atlas_model::tab::GroupBy::Date)),
             "view.group-size" => Some(Action::SetGroupBy(atlas_model::tab::GroupBy::Size)),
@@ -801,6 +807,30 @@ mod tests {
     #[test]
     fn non_reserved_shortcuts_are_allowed() {
         assert!(!reserved_static_shortcut("ctrl-alt-1"));
+        assert!(!reserved_static_shortcut("space"));
+    }
+
+    #[test]
+    fn quick_look_shortcut_can_be_changed_removed_and_restored() {
+        let mut prefs = CommandShortcutPrefs::default();
+        assert_eq!(
+            prefs.shortcut_string("view.quick-look").as_deref(),
+            Some("space")
+        );
+        prefs
+            .bindings
+            .insert("view.quick-look".into(), Some("ctrl-alt-p".into()));
+        assert_eq!(
+            prefs.shortcut_string("view.quick-look").as_deref(),
+            Some("ctrl-alt-p")
+        );
+        prefs.bindings.insert("view.quick-look".into(), None);
+        assert_eq!(prefs.shortcut_string("view.quick-look"), None);
+        prefs.bindings.remove("view.quick-look");
+        assert_eq!(
+            prefs.shortcut_string("view.quick-look").as_deref(),
+            Some("space")
+        );
     }
 
     #[test]

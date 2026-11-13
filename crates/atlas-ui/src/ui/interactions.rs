@@ -451,6 +451,16 @@ impl App {
             .is_some_and(|model| model.bounds.contains(&pos))
     }
 
+    fn details_press_outside_name(&self, pane: TabId, pos: gpui::Point<gpui::Pixels>) -> bool {
+        self.tab_data_for(pane)
+            .is_some_and(|tab| tab.view_mode == ViewMode::Details)
+            && self
+                .details_hit
+                .get(&pane)
+                .and_then(|model| model.name_right)
+                .is_some_and(|right| pos.x > right)
+    }
+
     pub(crate) fn details_row_selected(&self, pane: TabId, entry_idx: usize) -> bool {
         self.state
             .tab_states
@@ -639,6 +649,17 @@ impl App {
                     .is_some_and(|col| col.selection.selected.len() > 1),
                 RubberTarget::Dropzone => self.dropzone_selection.selected.len() > 1,
             };
+        // Explorer-style: pressing an unselected item defers like a selected
+        // group, so moving drags the file instead of starting a marquee.
+        let item_drag = !selected
+            && !shift
+            && !ctrl
+            && click_count == 1
+            && match (target, entry_idx) {
+                (RubberTarget::Pane(pane), Some(_)) => !self.details_press_outside_name(pane, pos),
+                _ => false,
+            };
+        let selected_click = selected_click || item_drag;
         if click_count < 2
             && ((!selected && (entry_idx.is_none() || (!shift && !ctrl))) || selected_click)
         {

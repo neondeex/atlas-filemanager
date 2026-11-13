@@ -1,12 +1,13 @@
-• Rendimiento nativo de alta velocidad: Desarrollado en Rust con aceleración por GPU para un inicio instantáneo y navegación fluida a más de 60 FPS.
-• Pestañas y paneles duales: Trabaja con facilidad mediante pestañas ilimitadas y división flexible de paneles horizontal o vertical.
-• Múltiples modos de visualización: Alterna rápidamente entre Lista detallada, Cuadrícula de íconos con miniaturas y Columnas Miller.
-• Búsqueda instantánea: Motor de búsqueda indexada ultrarrápido y filtros inteligentes que localizan archivos en milisegundos.
-• Limpieza visual de espacio en disco: Mapa interactivo de uso de almacenamiento y herramientas seguras para liberar espacio en tus unidades.
-• Carpetas privadas con cifrado local: Protege tus carpetas más sensibles mediante cifrado seguro respaldado por contraseña.
-• Paleta de comandos integrada: Controla toda la aplicación desde el teclado mediante la paleta de comandos accesible con Ctrl+P.
-• Cambio de nombre por lotes: Renombra cientos de archivos simultáneamente con reglas de reemplazo, patrones y numeración automática.
-• Panel de vista previa enriquecida: Visualización instantánea de código fuente, Markdown, documentos PDF, imágenes, audio, video y archivos comprimidos.
-• Integración con la nube y red: Conecta servicios de Google Drive, OneDrive, Dropbox y carpetas compartidas de red desde la barra lateral.
-• Privacidad total y sin telemetría: Operación 100% local en tu equipo, sin rastreo ni recopilación de información personal.
-• Perfiles y temas personalizables: Configura esquemas de color, íconos y atajos adaptados a cada flujo de trabajo personal o profesional.
+• Pestañas y paneles divididos, cada uno con su propia vista e historial
+• Búsqueda en una carpeta y en todas sus subcarpetas
+• Vista previa de imágenes, PDF, Markdown, texto y código junto a la lista
+• Conversión desde un anillo de formatos, por ejemplo de JPG a PNG, WebP o PDF
+• Archivos ZIP que se abren como carpetas, con vista previa de su contenido
+• Vistas de detalles, cuadrícula, lista, columnas y árbol
+• Paleta de comandos con todas las acciones y sus atajos de teclado
+• Atajos de teclado configurables y ajustes con búsqueda
+• Google Drive, OneDrive, SFTP, FTP, WebDAV y SMB en la barra lateral
+• Temas claros, oscuros y translúcidos con vista previa en vivo
+• Mapa de uso del disco para revisar carpetas grandes antes de limpiar
+• Renombrado por lotes con patrones y numeración
+• Opcional: abrir Atlas con Win+E en lugar del Explorador de archivos

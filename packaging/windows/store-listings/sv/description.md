@@ -1,48 +1,21 @@
-# Atlas Filhanterare
+Atlas File Manager är en filutforskare för Windows. Öppna mappar i flikar, arbeta med två paneler sida vid sida, sök i undermappar och förhandsvisa filer utan att lämna fönstret. De flesta åtgärder har ett kortkommando, och varje kommando går att hitta med en enda sökning.
 
-**Atlas Filhanterare** är nästa generations filhanterare för skrivbordet, byggd från grunden i Rust för att leverera oöverträffad snabbhet, följsam respons i 60+ FPS och kraftfull multitasking. Konstruerad som en modern ersättare till traditionella filhanterare kombinerar Atlas elegant skrivbordsestetik med prestanda i arbetsstationsklass.
+• Flikar och delade paneler, var och en med egen vy och historik
+• Sökning i en mapp och alla dess undermappar
+• Förhandsvisning av bilder, PDF, Markdown, text och kod bredvid fillistan
+• Konvertera filer från en formatring, till exempel JPG till PNG, WebP eller PDF
+• Öppna ZIP-arkiv som mappar och förhandsvisa innehållet
+• Detalj-, rutnäts-, list-, kolumn- och trädvy
+• Kommandopalett med varje åtgärd och dess kortkommando
+• Anpassningsbara kortkommandon och sökbara inställningar
+• Google Drive, OneDrive, SFTP, FTP, WebDAV och SMB i sidofältet
+• Ljusa, mörka och genomskinliga teman med direkt förhandsvisning
+• Karta över diskanvändning för att granska stora mappar före rensning
+• Byt namn på flera filer med mönster och numrering
+• Valfritt: öppna Atlas med Win+E i stället för Utforskaren
 
-Oavsett om du navigerar i gigantiska kodbaser, organiserar kreativa mediebibliotek, analyserar diskutrymme eller hanterar vardagliga filer, levererar Atlas den snabbhet, överskådlighet och kontroll du behöver.
+Free omfattar upp till 2 paneler, 1 sparad anslutning och 2 profiler. Namnbyte i grupp: upp till 25 filer per åtgärd. Konvertering: 1 källfil per åtgärd och 10 konverterade filer per dag. Premium tar bort dessa editionsgränser och köps separat.
 
----
-
-### Huvudfunktioner
-
-#### ⚡ Blixtsnabb inhemsk prestanda
-Atlas är helt skriven i Rust med GPU-accelererad rendering, vilket eliminerar fördröjningar och tröga gränssnitt. Njut av omedelbar kallstart, noll indexeringsfördröjning och silkeslen rullning genom mappar med tiotusentals filer – allt med minimal minnesanvändning.
-
-#### 📑 Flikar och dubbla fönster
-Hantera flera uppgifter med suverän precision:
-- **Obegränsat antal flikar**: Öppna, duplicera, flytta och återställ flikar precis som i en modern webbläsare.
-- **Dubbla fönster och delad vy**: Arbeta sida vid sida eller med staplade paneler för att flytta och jämföra filer mellan mappar utan att jonglera med flera separata fönster.
-- **Flera visningslägen**: Anpassa vyn för varje enskild mapp med detaljerad information, anpassningsbart miniatyrrutnät eller flernivås Miller-kolumner.
-- **Arv av mappvy**: Ställ in visningsstil, kolumner och sortering per mapp eller låt inställningarna ärvas av alla undermappar.
-
-#### 🔍 Blixtsnabb sökning och direktfiltrering
-Tappa aldrig bort en fil igen. Atlas erbjuder omedelbar indexerad filsökning och fuzzy-filtrering över alla dina enheter med svarstider på millisekunder. Filtrera filer i farten efter typ, filnamnstillägg eller anpassade taggar utan att datorn blir långsam.
-
-#### 💾 Visuell diskrensning och utrymmesanalys
-Ta full kontroll över din lagring:
-- **Visuell lagringskarta**: Utforska interaktiva hierarkiska kartor (treemaps) där blockens storlek speglar faktisk diskanvändning. Dubbelklicka för att zooma in i stora undermappar.
-- **Intelligent diskrensning**: Identifiera överblivna temporära filer, gamla hämtade filer, webbläsarcachar och kraschdumpar på ett säkert sätt.
-- **Säker granskning**: Ta bort oönskade filer permanent eller flytta dem till Papperskorgen med fullständig förhandsgranskning innan några ändringar verkställs.
-
-#### 🔒 Fullständig integritet och krypterade valv
-Dina filer tillhör enbart dig:
-- **Noll telemetri**: Skrivbordsappen skickar ingen användningsanalys. Lokala filåtgärder utförs på din enhet. Valfria molnanslutningar överför filer och metadata för de åtgärder du begär; uppdateringskontroller och hämtning av extra verktyg använder nätverket.
-- **Privata krypterade valv**: Skydda känsliga mappar med stark lokal kryptering skyddad av lösenord. Låsta valv är helt ogenomträngliga och oläsliga i Utforskaren och andra profiler tills du låser upp dem med ditt lösenord.
-
-#### ⌨️ Kommandopalett och kortkommandon för avancerade användare
-Utformad för maximal effektivitet direkt från tangentbordet:
-- **Kommandopalett (`Ctrl+P`)**: Kör alla kommandon, byt vyer, hoppa till bokmärken eller ändra inställningar direkt via en snabb sökruta.
-- **Snabbåtkomst**: Fäst dina viktigaste åtgärder och favoritplatser direkt för åtkomst med ett enda klick.
-- **Anpassningsbara kortkommandon**: Anpassa tangentbordsgenvägar efter ditt eget muskelminne, inklusive fullständig tangentbordsnavigering.
-- **Ändra namn på flera filer**: Byt namn på hundratals filer samtidigt med anpassningsbara mönster, sekvensnumrering och sök/ersätt-regler.
-- **Inbyggd förhandsgranskning**: Inspektera snabbt Markdown-filer, syntaxmarkerad källkod, PDF-dokument, högupplösta bilder, ljud, video och arkiv.
-
----
-
-### Upplev framtidens filhantering
-Uppgradera till en modern, integritetsfokuserad filhanterare byggd för ren snabbhet och arbetsro. Ladda ned **Atlas Filhanterare** idag och upplev hur smidig filhantering på Windows kan vara.
+Lokal filhantering kräver inget Atlas-konto. Valfria molnanslutningar kräver internet och ett konto hos leverantören. Vissa förhandsvisningar och konverteringar kräver ytterligare verktyg. Montering av krypterade privata mappar kräver den valfria WinFsp-drivrutinen.
 
 Källkod (AGPL-3.0-or-later): https://atlasfm.modhyt.org/source-code

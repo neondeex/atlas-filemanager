@@ -1,15 +1,8 @@
-Atlas Dosya Yöneticisi 0.1.0 — İlk Sürüm
+Atlas File Manager, Windows üzerinde dosyaları gezmenize ve düzenlemenize yardımcı olur. Klasörleri sekmelerde açın, konumları bölünmüş panellerde karşılaştırın ve ayrıntı, ızgara veya sütun görünümünü seçin.
 
-Windows için Atlas Dosya Yöneticisi'nin ilk resmi sürümüne hoş geldiniz!
-
-Öne Çıkan Başlıca Özellikler:
-• Yıldırım Hızında Performans: Akıcı 60+ FPS tepkiselliği ve son derece hafif bellek ayak izi için yerel DirectX/GPU hızlandırmasıyla tamamen Rust dilinde geliştirildi.
-• Sekmeler ve Bölünmüş Çift Bölme: Sınırsız sekme ve bölünmüş bölme düzenleriyle (yan yana veya üst üste) iş akışınızı verimli bir şekilde düzenleyin.
-• Esnek Görünüm Modları: İş akışınıza uyum sağlayan ayrıntılı liste, küçük resim ızgarası ve çok sütunlu Miller sütun görünümü.
-• Anında Arama ve Konuma Git: Milisaniye düzeyinde sonuçlarla yerel sürücüler genelinde gerçek zamanlı esnek filtreleme.
-• Görsel Disk Alanı Çözümleyicisi: Depolama alanını tüketen unsurları saptamak ve geçici dosyaları güvenle temizlemek için etkileşimli görsel disk haritası.
-• Şifreli Özel Kasalar: Gizli verilerinizi güvende ve yalıtılmış tutan parola korumalı yerel klasör şifreleme.
-• Güçlü Kullanıcı Klavye Paleti: Klavyeden üst düzey verimlilik için hızlı komut paleti (Ctrl+P) ve özelleştirilebilir kısayollar.
-• Toplu Yeniden Adlandırma: Sıralı numaralandırma, bul ve değiştir ve canlı önizleme sunan yüksek hızlı çoklu dosya yeniden adlandırıcısı.
-• Yerleşik Zengin Önizlemeler: Resimler, PDF'ler, Markdown belgeleri, sözdizimi vurgulamalı kodlar, ses, video ve arşivler için anında inceleme.
-• Yerel Türkçe (tr): Windows masaüstü standartlarına ve terminolojisine tam uyumlu yerelleştirme.
+• Sekmeler ve bölünmüş paneller
+• Ayrıntı, ızgara ve sütun görünümleri
+• Dosya arama ve klasör filtreleri
+• Desteklenen dosya biçimlerinin önizlemesi
+• Disk kullanımı görünümü ve temizlik incelemesi
+• Desen ve numaralandırma ile toplu ad değiştirme

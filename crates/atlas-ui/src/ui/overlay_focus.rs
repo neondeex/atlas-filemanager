@@ -165,6 +165,13 @@ impl App {
     /// Decide which focus handle should own the keyboard this frame and move focus
     /// to it (only when not already focused, to avoid fighting the cursor).
     pub(crate) fn sync_overlay_focus(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        // The color picker is a deferred popover. Reclaiming the settings search
+        // input each render steals its hex input and interrupts slider drags.
+        if matches!(self.active_claim(), Some(OverlayClaim::Settings))
+            && self.theme_color_picker_open(cx)
+        {
+            return;
+        }
         if matches!(self.active_claim(), Some(OverlayClaim::DiskCleanup)) {
             if let Some(panel) = &self.cleanup_panel {
                 if panel.read(cx).focus.contains_focused(window, cx) {

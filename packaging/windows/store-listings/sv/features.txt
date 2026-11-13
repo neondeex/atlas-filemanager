@@ -1,12 +1,13 @@
-• Inhemsk hög prestanda: Byggd i Rust med GPU-acceleration för blixtsnabb start och följsam navigering i över 60 FPS.
-• Flikar och dubbla fönster: Utför flera uppgifter smidigt med obegränsat antal flikar och flexibel horisontell eller vertikal delning.
-• Flera visningslägen: Växla enkelt mellan detaljerad lista, miniatyrrutnät och Miller-kolumner.
-• Blixtsnabb sökning: Blixtsnabb indexerad sökning och fuzzy-filtrering som hittar filer över alla enheter på millisekunder.
-• Visuell diskrensning: Interaktiv enhetsvisualisering och rensningsverktyg för att identifiera stora filer och frigöra lagringsutrymme.
-• Krypterade privata valv: Skydda känsliga mappar med lösenordsskyddad lokal kryptering för fullständig integritet.
-• Kommandopalett: Direkt tangentbordsåtkomst till alla kommandon, inställningar och navigationsmål via Ctrl+P.
-• Ändra namn på flera filer: Byt namn på hundratals filer samtidigt med anpassningsbara mönster, numrering och ersättningsregler.
-• Inbyggd funktionsrik förhandsgranskning: Direkt förhandsgranskning för källkod, Markdown, PDF, bilder, ljud, video och komprimerade arkiv.
-• Moln- och nätverksintegrering: Kom åt Google Drive, OneDrive, Dropbox och nätverksenheter smidigt direkt från sidofältet.
-• Fullständig integritet: Noll telemetri, ingen användarspårning och helt lokal drift utan nätverkskrav.
-• Anpassningsbara profiler och teman: Skräddarsy färgteman, filikoner och inställningar för arbete, utveckling eller personligt bruk.
+• Flikar och delade paneler, var och en med egen vy och historik
+• Sökning i en mapp och alla dess undermappar
+• Förhandsvisning av bilder, PDF, Markdown, text och kod bredvid fillistan
+• Konvertera filer från en formatring, till exempel JPG till PNG, WebP eller PDF
+• Öppna ZIP-arkiv som mappar och förhandsvisa innehållet
+• Detalj-, rutnäts-, list-, kolumn- och trädvy
+• Kommandopalett med varje åtgärd och dess kortkommando
+• Anpassningsbara kortkommandon och sökbara inställningar
+• Google Drive, OneDrive, SFTP, FTP, WebDAV och SMB i sidofältet
+• Ljusa, mörka och genomskinliga teman med direkt förhandsvisning
+• Karta över diskanvändning för att granska stora mappar före rensning
+• Byt namn på flera filer med mönster och numrering
+• Valfritt: öppna Atlas med Win+E i stället för Utforskaren

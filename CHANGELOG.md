@@ -5,6 +5,46 @@ Write user-facing release notes here. Release headings use
 
 ## [Unreleased]
 
+## [0.1.6-beta.2] - 2026-11-13
+
+### Fixed
+
+- Closing Atlas with the window's close button saves tabs, panes and grouping. Previously only
+  Ctrl+Q or the one-minute checkpoint saved them.
+- Dragging a file that was not selected yet moves it instead of drawing a selection box.
+  In Details, dragging from the other columns still draws the box.
+
+### New
+
+- Each pane has a preview button next to the address bar, so the preview panel no longer
+  depends on knowing the Space shortcut.
+- Sort by name, date modified, size or type, and reverse the order, from the command palette.
+  Running the same sort again flips its direction.
+
+## [0.1.6-beta.1] - 2026-11-12
+
+- Keep Enter, Escape, cursor and slider keys inside the open theme color picker,
+  preventing Settings from intercepting a pasted color before confirmation.
+
+### Fixed
+
+- Dragging files to other applications copies the originals and never starts a source-deletion operation.
+- Markdown previews scroll in the same direction with smooth and precise scrolling.
+- Windows PDF previews use the native renderer even with an older Document Previews extension installed.
+- Theme color fields keep keyboard focus, accept pasted hex and HSL/HSLA values, and preserve slider precision.
+- Conversion format labels use opaque sectors and contrasting text; the selected format is highlighted immediately.
+- Windows 10 glass uses the legacy blur material instead of acrylic to avoid the native window-drag penalty.
+- Store packages declare the Microsoft Desktop VCLibs runtime dependency; the Inno installer bundles its desktop runtime.
+
+### Changed
+
+- Quick Look is listed in Commands and the shortcut editor. Space can be changed, removed or restored per profile.
+
+### Validation still required
+
+- The new Discord report of a freeze followed by repeated startup crashes needs the affected user's version and crash report.
+- Kaspersky's report (#14) requires vendor review of the exact distributed binaries. This beta does not claim an allowlist approval.
+
 ## [0.1.5] - 2026-11-05
 
 ### New

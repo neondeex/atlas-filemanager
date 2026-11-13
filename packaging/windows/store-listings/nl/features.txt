@@ -1,12 +1,13 @@
-• Razendsnelle native prestaties: Gebouwd in Rust met GPU-versnelling voor directe opstart en vloeiende 60+ FPS-navigatie.
-• Tabbladen & dubbele deelvensters: Moeiteloos multitasken met onbeperkte tabbladen en flexibele horizontale of verticale schermsplitsing.
-• Veelzijdige weergavemodi: Schakel soepel tussen detailweergave, pictogrammenraster en Miller-kolommen.
-• Direct zoeken: Bliksemsnelle geïndexeerde zoekfunctie en fuzzy-filtering die bestanden over alle schijven in milliseconden vindt.
-• Visuele schijfruimte-opruiming: Interactieve schijfvisualisatie en opruimhulpmiddelen om grote bestanden te lokaliseren en opslagruimte terug te winnen.
-• Beveiligde versleutelde kluizen: Bescherm gevoelige mappen met lokale wachtwoordversleuteling voor maximale privacy.
-• Handig opdrachtenpalet: Snelle toetsenbordtoegang tot alle opdrachten, instellingen en navigatiedoelen via Ctrl+P.
-• Batchgewijs hernoemen: Hernoem honderden bestanden gelijktijdig met aanpasbare patronen, nummering en vervangregels.
-• Ingebouwde uitgebreide voorbeelden: Directe voorbeelden van programmacode, Markdown, PDF's, afbeeldingen, audio, video en archieven.
-• Cloud- & netwerkintegratie: Naadloze toegang tot Google Drive, OneDrive, Dropbox en netwerkstations vanuit de zijbalk.
-• Privacy voorop: Geen telemetrie, geen tracking van gebruikers en volledig offline werking.
-• Aanpasbare profielen & thema's: Pas kleurthema's, bestandspictogrammen en instellingen aan voor werk, ontwikkeling of privégebruik.
+• Tabbladen en gesplitste panelen, elk met een eigen weergave en geschiedenis
+• Zoeken in een map en al haar submappen
+• Voorbeelden van afbeeldingen, pdf’s, Markdown, tekst en code naast de lijst
+• Bestanden converteren vanuit een formaatring, bijvoorbeeld JPG naar PNG, WebP of PDF
+• ZIP-archieven openen als mappen en de inhoud bekijken
+• Detail-, raster-, lijst-, kolom- en boomweergave
+• Opdrachtpalet met elke actie en de bijbehorende sneltoets
+• Aanpasbare sneltoetsen en doorzoekbare instellingen
+• Google Drive, OneDrive, SFTP, FTP, WebDAV en SMB in de zijbalk
+• Lichte, donkere en transparante thema’s met live voorbeeld
+• Overzicht van schijfgebruik om grote mappen te bekijken voordat u opruimt
+• Meerdere bestanden hernoemen met patronen en nummering
+• Optioneel: Atlas openen met Win+E in plaats van Verkenner

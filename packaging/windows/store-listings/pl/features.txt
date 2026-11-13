@@ -1,12 +1,13 @@
-• Natywna, wysoka wydajność: Stworzony od podstaw w Rust z akceleracją GPU dla natychmiastowego startu i płynności 60+ FPS.
-• Karty i podwójne panele: Wygodna wielozadaniowość dzięki nielimitowanym kartom oraz poziomemu i pionowemu podziałowi okna.
-• Wiele trybów widoku: Płynne przełączanie między listą szczegółową, siatką miniatur a kolumnami Millera.
-• Błyskawiczne wyszukiwanie: Indeksowane wyszukiwanie i filtrowanie rozmyte odnajdujące pliki na dyskach w milisekundach.
-• Wizualne oczyszczanie dysku: Interaktywna mapa dysku i narzędzia do wykrywania dużych plików oraz odzyskiwania miejsca.
-• Szyfrowane magazyny prywatne: Bezpieczne foldery chronione lokalnym szyfrowaniem na hasło dla pełnej prywatności.
-• Paleta poleceń: Błyskawiczny dostęp z klawiatury do wszystkich poleceń, ustawień i ścieżek za pomocą skrótu Ctrl+P.
-• Wsadowa zmiana nazw plików: Zmieniaj nazwy setek plików jednocześnie za pomocą wzorców, numeracji i reguł zamiany.
-• Wbudowany bogaty podgląd: Natychmiastowy podgląd kodu, plików Markdown, PDF, zdjęć, audio, wideo i archiwów.
-• Integracja z chmurą i siecią: Wygodny dostęp do Google Drive, OneDrive, Dropbox i dysków sieciowych z paska bocznego.
-• Całkowita prywatność: Zero telemetrii, brak śledzenia użytkownika i w pełni lokalne działanie bez połączenia z siecią.
-• Personalizacja i profile: Dopasuj motywy kolorystyczne, ikony plików i ustawienia do pracy, programowania lub domu.
+• Karty i podzielone panele, każdy z własnym widokiem i historią
+• Wyszukiwanie w folderze i wszystkich jego podfolderach
+• Podgląd obrazów, plików PDF, Markdown, tekstu i kodu obok listy plików
+• Konwersja z pierścienia formatów, na przykład z JPG do PNG, WebP lub PDF
+• Archiwa ZIP otwierane jak foldery, z podglądem zawartości
+• Widoki szczegółów, siatki, listy, kolumn i drzewa
+• Paleta poleceń z każdą akcją i jej skrótem klawiaturowym
+• Konfigurowalne skróty klawiaturowe i ustawienia z wyszukiwaniem
+• Google Drive, OneDrive, SFTP, FTP, WebDAV i SMB na pasku bocznym
+• Jasne, ciemne i półprzezroczyste motywy z podglądem na żywo
+• Mapa użycia dysku do przeglądu dużych folderów przed porządkami
+• Zbiorcza zmiana nazw według wzorców i numeracji
+• Opcjonalnie: otwieranie Atlas klawiszami Win+E zamiast Eksploratora plików

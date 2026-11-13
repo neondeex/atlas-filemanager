@@ -1,15 +1,8 @@
-Atlas Gerenciador de Arquivos 0.1.0 — Versão Inicial
+O Atlas File Manager ajuda a explorar e organizar arquivos no Windows. Abra pastas em abas, compare locais em painéis divididos e escolha a visualização de detalhes, grade ou colunas.
 
-Boas-vindas ao lançamento oficial do Atlas Gerenciador de Arquivos para Windows!
-
-Principais Destaques:
-• Desempenho Ultrarrápido: Desenvolvido do zero em Rust com renderização acelerada por GPU nativa, garantindo taxa de resposta fluida a mais de 60 FPS e consumo mínimo de memória.
-• Abas e Painéis Duplos: Multitarefa ágil com abas ilimitadas e divisões de tela horizontais ou verticais para transferir e comparar arquivos com praticidade.
-• Modos de Exibição Flexíveis: Lista detalhada, grade de miniaturas adaptativa e colunas encadeadas no estilo Miller para cada tipo de pasta.
-• Pesquisa Instantânea e "Ir para": Localização em tempo real de arquivos e pastas em unidades locais com resultados em milissegundos.
-• Analisador Visual de Espaço em Disco: Mapa gráfico interativo (treemap) para visualizar o que consome espaço e limpar arquivos temporários com segurança.
-• Cofres Privados Criptografados: Proteção de pastas confidenciais com criptografia robusta, isoladas do Explorador de Arquivos até serem desbloqueadas por senha.
-• Paleta de Comandos (Ctrl+P): Controle total pelo teclado com atalhos personalizáveis e pesquisa rápida de ações.
-• Renomeador em Lote: Ferramenta veloz para renomear múltiplos arquivos com numeração sequencial, localizar e substituir e pré-visualização ao vivo.
-• Inspetor de Visualização Prévia: Pré-visualize documentos PDF, Markdown, códigos-fonte, fotos em alta resolução, áudio, vídeo e arquivos compactados.
-• Tradução Integral em Português do Brasil (pt-BR): Interface totalmente localizada de acordo com as convenções padrão do Windows desktop.
+• Abas e painéis divididos
+• Visualizações de detalhes, grade e colunas
+• Pesquisa de arquivos e filtros por pasta
+• Prévia de formatos compatíveis
+• Mapa de uso do disco e revisão de limpeza
+• Renomeação em lote com padrões e numeração

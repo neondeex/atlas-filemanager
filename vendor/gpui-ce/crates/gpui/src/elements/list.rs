@@ -1646,7 +1646,9 @@ impl Element for List {
                     && list_state.0.borrow().smooth_ease > 0.0
                 {
                     let boost = list_state.0.borrow().smooth_boost.max(1.0);
-                    list_state.0.borrow_mut().smooth_remaining += pixel_delta.y * boost;
+                    // Wheel deltas describe content motion; scroll_by takes an
+                    // increase in the scroll position (the opposite sign).
+                    list_state.0.borrow_mut().smooth_remaining -= pixel_delta.y * boost;
                     schedule_smooth_list_scroll(list_state.clone(), current_view, window, cx);
                 } else {
                     list_state.0.borrow_mut().scroll(
@@ -1960,6 +1962,44 @@ mod test {
         let offset = state.logical_scroll_top();
         assert_eq!(offset.item_ix, 0);
         assert_eq!(offset.offset_in_item, px(0.));
+    }
+
+    #[gpui::test]
+    fn test_smooth_wheel_moves_in_the_same_direction_as_precise_wheel(cx: &mut TestAppContext) {
+        let cx = cx.add_empty_window();
+        let state = ListState::new(100, crate::ListAlignment::Top, px(10.));
+        state.set_smooth(0.25, 1.0);
+        struct TestView(ListState);
+        impl Render for TestView {
+            fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+                list(self.0.clone(), |_, _, _| {
+                    div().h(px(20.)).w_full().into_any()
+                })
+                .w_full()
+                .h_full()
+            }
+        }
+        cx.draw(point(px(0.), px(0.)), size(px(100.), px(100.)), |_, cx| {
+            cx.new(|_| TestView(state.clone())).into_any_element()
+        });
+        cx.simulate_event(ScrollWheelEvent {
+            position: point(px(1.), px(1.)),
+            delta: ScrollDelta::Lines(point(0., -3.)),
+            ..Default::default()
+        });
+        // A downward wheel must advance the logical position, as scroll_by
+        // expects. With the old sign it instead stayed clamped at the top.
+        assert!(state.0.borrow().smooth_remaining > px(0.));
+        state.0.borrow_mut().smooth_remaining = px(0.);
+        cx.draw(point(px(0.), px(0.)), size(px(100.), px(100.)), |_, cx| {
+            cx.new(|_| TestView(state.clone())).into_any_element()
+        });
+        cx.simulate_event(ScrollWheelEvent {
+            position: point(px(1.), px(1.)),
+            delta: ScrollDelta::Lines(point(0., 3.)),
+            ..Default::default()
+        });
+        assert!(state.0.borrow().smooth_remaining < px(0.));
     }
 
     #[gpui::test]
