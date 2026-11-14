@@ -333,46 +333,76 @@ impl App {
             .overflow_hidden()
             .occlude()
             .capture_action(cx.listener(|this, _: &MoveUp, _, cx| {
+                if this.theme_color_picker_open(cx) {
+                    return;
+                }
                 this.settings_move(-1);
                 cx.stop_propagation();
                 cx.notify();
             }))
             .capture_action(cx.listener(|this, _: &MoveDown, _, cx| {
+                if this.theme_color_picker_open(cx) {
+                    return;
+                }
                 this.settings_move(1);
                 cx.stop_propagation();
                 cx.notify();
             }))
             .capture_action(cx.listener(|this, _: &MoveLeft, window, cx| {
+                if this.theme_color_picker_open(cx) {
+                    return;
+                }
                 if this.settings_horizontal(-1, window, cx) {
                     cx.stop_propagation();
                 }
             }))
             .capture_action(cx.listener(|this, _: &MoveRight, window, cx| {
+                if this.theme_color_picker_open(cx) {
+                    return;
+                }
                 if this.settings_horizontal(1, window, cx) {
                     cx.stop_propagation();
                 }
             }))
             .capture_action(cx.listener(|this, action: &InputEnter, window, cx| {
+                // The deferred color popover owns text confirmation, cursor
+                // movement and slider keys while it is open. Capture handlers
+                // run before its input and must not consume those actions.
+                if this.theme_color_picker_open(cx) {
+                    return;
+                }
                 if !action.secondary {
                     this.settings_enter(window, cx);
                     cx.stop_propagation();
                 }
             }))
             .capture_action(cx.listener(|this, _: &IndentInline, _, cx| {
+                if this.theme_color_picker_open(cx) {
+                    return;
+                }
                 this.settings_cycle_category(1);
                 cx.stop_propagation();
                 cx.notify();
             }))
             .capture_action(cx.listener(|this, _: &OutdentInline, _, cx| {
+                if this.theme_color_picker_open(cx) {
+                    return;
+                }
                 this.settings_cycle_category(-1);
                 cx.stop_propagation();
                 cx.notify();
             }))
             .capture_action(cx.listener(|this, _: &InputEscape, window, cx| {
+                if this.theme_color_picker_open(cx) {
+                    return;
+                }
                 cx.stop_propagation();
                 this.settings_escape(window, cx);
             }))
             .capture_key_down(cx.listener(|this, ev: &gpui::KeyDownEvent, window, cx| {
+                if this.theme_color_picker_open(cx) {
+                    return;
+                }
                 let ks = &ev.keystroke;
                 if ks.key == "escape" {
                     cx.stop_propagation();

@@ -1,7 +1,8 @@
 # Contribution checks and maintainer package tests
 
-Microsoft Store is the Windows distribution and update channel. GitHub CI checks
-contributions; it does not distribute an alternative Windows installation.
+Microsoft Store is the normal Windows distribution and update channel. Manual
+Packages runs can also prepare a temporary EXE beta for selected Windows testers
+and Linux beta packages. These artifacts do not create a public GitHub release.
 
 For maintainer package tests, open **Actions**, choose the manual packaging run,
 then download its **Artifacts**. GitHub requires sign-in for artifact downloads.
@@ -18,8 +19,9 @@ automatically rebuilding packages for every pull request.
 ## Manual package validation for maintainers
 
 These workflows prepare controlled test artifacts and Store submission files.
-Do not advertise their EXE, portable or self-signed MSIX artifacts as a Windows
-download channel: those installations are outside Store-managed updates.
+Temporary EXE betas are outside Store-managed updates. Keep the Store installation
+and return to it after the update is approved; the Store does not replace an EXE
+installation. Self-signed MSIX files remain maintainer test artifacts.
 
 Run **Actions → Packages → Run workflow** with a version from `CHANGELOG.md`.
 Select both platforms, or just Windows/Linux when checking a platform-specific fix.
@@ -45,6 +47,11 @@ or submitting anything to Microsoft Store, Flathub or Snap Store.
   Microsoft signs MSIX submitted through the Store. For the Store Free baseline,
   select `free` when running Packages; the selected edition applies to both
   Windows formats.
+- Windows testers who already have Store Atlas should close it, keep it installed,
+  and open the temporary beta explicitly from `C:\Program Files\Atlas\atlas.exe`.
+  Preferences may be separate. Store Premium ownership is unavailable in the
+  unpackaged Free EXE; do not buy it again for a test. After Store approval,
+  uninstall only the EXE beta and return to the updated Store application.
 - `test-msix-windows-x86_64`: self-signed MSIX plus `AtlasDev.cer` (public key
   only). For deliberate local testing, review and run `Install-TestPackage.ps1`
   in an elevated PowerShell. This trusts the supplied certificate in Trusted

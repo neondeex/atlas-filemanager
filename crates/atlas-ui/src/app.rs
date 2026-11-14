@@ -1339,6 +1339,9 @@ pub(crate) struct DetailsHitModel {
     pub(crate) total_count: usize,
     /// Content-space row positions while sorting; empty for the O(1) idle path.
     pub(crate) presented_rows: Vec<(usize, f32)>,
+    /// Right edge of the Name column. Like Explorer, a press on an unselected
+    /// row's name drags the file; a press on the other columns draws a marquee.
+    pub(crate) name_right: Option<gpui::Pixels>,
 }
 
 impl DetailsHitModel {

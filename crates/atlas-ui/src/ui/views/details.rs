@@ -1480,6 +1480,7 @@ mod tests {
     fn hit_model() -> DetailsHitModel {
         DetailsHitModel {
             presented_rows: Vec::new(),
+            name_right: None,
             bounds: gpui::Bounds {
                 origin: point(px(10.0), px(100.0)),
                 size: size(px(300.0), px(96.0)),

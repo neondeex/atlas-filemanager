@@ -29,9 +29,7 @@ use windows::Win32::System::DataExchange::{
     AddClipboardFormatListener, RemoveClipboardFormatListener,
 };
 use windows::Win32::System::Ole::IDropTarget;
-use windows::Win32::System::Ole::{
-    DoDragDrop, DROPEFFECT, DROPEFFECT_COPY, DROPEFFECT_MOVE, DROPEFFECT_NONE,
-};
+use windows::Win32::System::Ole::{DoDragDrop, DROPEFFECT, DROPEFFECT_COPY, DROPEFFECT_NONE};
 use windows::Win32::UI::WindowsAndMessaging::{
     CallWindowProcW, GetCursorPos, PostMessageW, SetWindowLongPtrW, GWLP_WNDPROC,
     WM_CLIPBOARDUPDATE, WM_LBUTTONUP, WM_USER,
@@ -60,11 +58,6 @@ pub enum DndEvent {
     DragLeave,
     /// Something was dropped onto an Atlas window.
     DropIn(DropPayload),
-    /// A drag *out of* Atlas ended with the target reporting MOVE: the source
-    /// files must now be deleted (to trash, recoverable).
-    DragOutMoved {
-        paths: Vec<PathBuf>,
-    },
     /// An OLE-layer failure the user should see as a toast.
     Error(String),
 }
@@ -98,9 +91,8 @@ struct PendingDrag {
     paths: Vec<PathBuf>,
     /// `Some` when dragging from inside an archive (Phase 5).
     archive_items: Option<Vec<(PathBuf, PathBuf)>>,
-    /// Where to report move-completion / errors back to the App.
+    /// Where to report extraction errors back to the App.
     queue: Option<DndQueue>,
-    copy_only: bool,
 }
 
 thread_local! {
@@ -140,10 +132,8 @@ unsafe extern "system" fn atlas_wndproc(
                 if !items.is_empty() {
                     start_drag_archive(pd.hwnd, &items, pd.queue.as_ref());
                 }
-            } else if pd.copy_only && !pd.paths.is_empty() {
-                start_drag_copy_only(pd.hwnd, &pd.paths);
             } else if !pd.paths.is_empty() {
-                start_drag_and_handle(pd.hwnd, &pd.paths, pd.queue.as_ref());
+                start_drag_copy_only(pd.hwnd, &pd.paths);
             }
             // DoDragDrop's nested message loop consumes the real WM_LBUTTONUP that
             // ends the drag, so gpui never sees it and leaves cx.active_drag set,
@@ -210,7 +200,6 @@ pub fn trigger_drag(
             paths,
             archive_items,
             queue,
-            copy_only: false,
         }));
     });
     unsafe {
@@ -230,7 +219,6 @@ pub fn trigger_drag_copy_only(hwnd_raw: isize, paths: Vec<PathBuf>) {
             paths,
             archive_items: None,
             queue: None,
-            copy_only: true,
         }));
     });
     unsafe {
@@ -314,11 +302,8 @@ pub fn setup_dnd(hwnd_raw: isize, scale_factor: f32) -> Option<DndState> {
 /// Start an OLE drag of real filesystem `paths`.
 ///
 /// Blocks until the drag operation completes (drop or cancel). Returns the
-/// `DROPEFFECT` reported by the receiving target — the caller is responsible
-/// for deleting source files if the effect is `DROPEFFECT_MOVE`.
-///
-/// Passing `DROPEFFECT_COPY | DROPEFFECT_MOVE` in `allowed` lets Explorer
-/// choose move/copy based on volume + modifier keys.
+/// `DROPEFFECT` reported by the receiving target. A receiving application must
+/// never be allowed to trigger source deletion merely by reporting MOVE.
 ///
 /// # Blocking behaviour
 /// `DoDragDrop` runs a nested Win32 message loop. During this loop:
@@ -351,9 +336,12 @@ pub fn start_drag_real(hwnd_raw: isize, paths: &[PathBuf], allowed: DROPEFFECT) 
 
     // Some targets only report via CFSTR_PERFORMEDDROPEFFECT on the data object.
     let performed_val = performed.load(std::sync::atomic::Ordering::Relaxed);
-    if performed_val != 0 {
-        effect = DROPEFFECT(performed_val);
-    }
+    effect = completed_drop_effect(
+        allowed,
+        effect,
+        DROPEFFECT(performed_val),
+        hr == windows::Win32::Foundation::DRAGDROP_S_DROP,
+    );
     tracing::debug!(
         allowed = allowed.0,
         effect = effect.0,
@@ -369,6 +357,23 @@ pub fn start_drag_real(hwnd_raw: isize, paths: &[PathBuf], allowed: DROPEFFECT) 
     effect
 }
 
+fn completed_drop_effect(
+    allowed: DROPEFFECT,
+    reported: DROPEFFECT,
+    performed: DROPEFFECT,
+    completed: bool,
+) -> DROPEFFECT {
+    if !completed {
+        return DROPEFFECT_NONE;
+    }
+    let effect = if performed != DROPEFFECT_NONE {
+        performed
+    } else {
+        reported
+    };
+    DROPEFFECT(effect.0 & allowed.0)
+}
+
 fn push_event(queue: Option<&DndQueue>, event: DndEvent) {
     if let Some(q) = queue {
         if let Some(mut q) = q.lock().or_else(atlas_model::sync::recover).ok() {
@@ -378,26 +383,8 @@ fn push_event(queue: Option<&DndQueue>, event: DndEvent) {
     }
 }
 
-/// Convenience: start a drag and handle the "delete source on move" logic.
-///
-/// After `DoDragDrop`, if the target reported a MOVE, a [`DndEvent::DragOutMoved`]
-/// is queued so the App trashes the sources (invariant: the intra-Atlas drop
-/// target always reports COPY — see `drop_target.rs` — so an Atlas→Atlas move
-/// never reaches this path and can't double-delete).
-pub fn start_drag_and_handle(hwnd_raw: isize, paths: &[PathBuf], queue: Option<&DndQueue>) {
-    let allowed = DROPEFFECT_COPY | DROPEFFECT_MOVE;
-    let effect = start_drag_real(hwnd_raw, paths, allowed);
-
-    if effect == DROPEFFECT_MOVE {
-        push_event(
-            queue,
-            DndEvent::DragOutMoved {
-                paths: paths.to_vec(),
-            },
-        );
-    }
-}
-
+/// Outgoing file drags copy. Internal moves are explicitly handled by Atlas's
+/// drop target; external consumers cannot authorize deletion of the originals.
 pub fn start_drag_copy_only(hwnd_raw: isize, paths: &[PathBuf]) {
     let _ = start_drag_real(hwnd_raw, paths, DROPEFFECT_COPY);
 }
@@ -405,7 +392,7 @@ pub fn start_drag_copy_only(hwnd_raw: isize, paths: &[PathBuf]) {
 /// Phase 5: Start an OLE drag of virtual files (inside an archive).
 ///
 /// Extracts `items` (archive_path, inner_path pairs) to a session-unique temp
-/// directory synchronously, then delegates to `start_drag_and_handle`.
+/// directory synchronously, then starts a copy-only drag.
 /// The temp directory is left on disk; the OS (or next startup) cleans it up.
 pub fn start_drag_archive(hwnd_raw: isize, items: &[(PathBuf, PathBuf)], queue: Option<&DndQueue>) {
     if items.is_empty() {
@@ -475,4 +462,35 @@ pub fn start_drag_archive(hwnd_raw: isize, items: &[(PathBuf, PathBuf)], queue: 
 
     // Virtual items are always COPY — the source lives in a zip, not on disk.
     let _ = start_drag_real(hwnd_raw, &extracted, DROPEFFECT_COPY);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use windows::Win32::System::Ole::DROPEFFECT_MOVE;
+
+    #[test]
+    fn external_target_cannot_upgrade_copy_to_move() {
+        for (reported, performed) in [
+            (DROPEFFECT_MOVE, DROPEFFECT_NONE),
+            (DROPEFFECT_COPY, DROPEFFECT_MOVE),
+        ] {
+            assert_eq!(
+                completed_drop_effect(DROPEFFECT_COPY, reported, performed, true),
+                DROPEFFECT_NONE
+            );
+        }
+        assert_eq!(
+            completed_drop_effect(DROPEFFECT_COPY, DROPEFFECT_COPY, DROPEFFECT_NONE, true),
+            DROPEFFECT_COPY
+        );
+    }
+
+    #[test]
+    fn cancelled_or_failed_drag_has_no_effect_even_if_target_reports_success() {
+        assert_eq!(
+            completed_drop_effect(DROPEFFECT_COPY, DROPEFFECT_COPY, DROPEFFECT_COPY, false),
+            DROPEFFECT_NONE
+        );
+    }
 }

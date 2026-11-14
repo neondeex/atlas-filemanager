@@ -1,15 +1,8 @@
-Atlas Filhanterare 0.1.0 — Första versionen
+Atlas File Manager hjälper dig att bläddra bland och ordna filer i Windows. Öppna mappar i flikar, jämför platser i delade paneler och välj detalj-, rutnäts- eller kolumnvy.
 
-Välkommen till den första officiella versionen av Atlas Filhanterare för Windows!
-
-Viktiga höjdpunkter:
-• Blixtsnabb prestanda: Konstruerad från grunden i Rust med maskinvaruaccelererad grafik för följsam respons i 60+ FPS och minimal minnesanvändning.
-• Flikar och dubbla fönster: Organisera ditt arbetsflöde med obegränsat antal flikar och delad vy (sida vid sida eller staplade).
-• Flexibla visningslägen: Detaljerad information, miniatyrrutnät och Miller-kolumner anpassade efter dina behov.
-• Blixtsnabb sökning och Gå till: Fuzzy-filtrering i realtid över lokala enheter med sökresultat på millisekunder.
-• Visuell diskrensning: Interaktiv lagringskarta som lokaliserar utrymmestjuvar och rensar temporära filer på ett säkert sätt.
-• Krypterade privata valv: Lösenordsskyddad lokal mappkryptering som håller dina privata filer säkra och isolerade.
-• Kommandopalett för avancerade användare: Snabb kommandopalett (Ctrl+P) och anpassningsbara kortkommandon för tangentbordsfokuserad effektivitet.
-• Ändra namn på flera filer: Snabbt batch-namnbyte med sekvensnumrering, sök och ersätt samt direkt förhandsgranskning.
-• Inbyggd förhandsgranskning: Direkt granskning av bilder, PDF-dokument, Markdown, syntaxmarkerad kod, ljud, video och arkiv.
-• Äkta svensk lokalisering (sv): Fullständigt översatt med strikt anpassning till Windows svenska skrivbordskonventioner.
+• Flikar och delade paneler
+• Detalj-, rutnäts- och kolumnvyer
+• Filsökning och mappfilter
+• Förhandsvisning av format som stöds
+• Visa diskutrymme och granska rensning
+• Byt namn på flera filer med mönster och numrering

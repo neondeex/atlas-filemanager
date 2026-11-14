@@ -1,12 +1,13 @@
-• Performance native exceptionnelle : Conçu de zéro en Rust avec accélération GPU pour un démarrage instantané et une fluidité constante à plus de 60 FPS.
-• Onglets et double volet : Naviguez en toute simplicité grâce aux onglets illimités et aux volets fractionnés horizontaux ou verticaux.
-• Modes d'affichage multiples : Basculez facilement entre la vue Détails haute densité, la grille de miniatures et les colonnes Miller.
-• Recherche instantanée : Indexation rapide et filtrage approximatif en temps réel pour retrouver des fichiers sur tous vos disques en quelques millisecondes.
-• Analyseur visuel d'espace disque : Carte interactive de l'espace de stockage et outils de nettoyage pour identifier les fichiers volumineux et libérer de la place.
-• Dossiers privés chiffrés : Protégez vos dossiers sensibles grâce au chiffrement local sécurisé par mot de passe pour une confidentialité absolue.
-• Palette de commandes : Accès instantané à l'ensemble des actions, paramètres et emplacements au clavier via Ctrl+P.
-• Renommage de fichiers par lots : Renommez des centaines de fichiers simultanément avec des modèles personnalisables, numérotation et recherche/remplacement.
-• Volet d'aperçu multimédia intégré : Visualisez immédiatement vos documents, code source, PDF, images, pistes audio, vidéos et archives sans ouvrir d'application tierce.
-• Intégration cloud et réseau : Accédez à vos lecteurs réseau et services cloud de manière transparente depuis la barre latérale.
-• Respect absolu de la vie privée : Zéro télémétrie, aucun suivi utilisateur et fonctionnement 100 % local et autonome.
-• Profils et thèmes personnalisables : Adaptez les thèmes de couleurs, les icônes de fichiers et les réglages selon vos contextes personnels ou professionnels.
+• Onglets et volets séparés, chacun avec sa propre vue et son historique
+• Recherche dans un dossier et tous ses sous-dossiers
+• Aperçu des images, PDF, Markdown, textes et code à côté de la liste
+• Conversion depuis un anneau de formats, par exemple JPG vers PNG, WebP ou PDF
+• Archives ZIP ouvertes comme des dossiers, avec aperçu du contenu
+• Vues détails, grille, liste, colonnes et arborescence
+• Palette de commandes avec chaque action et son raccourci clavier
+• Raccourcis clavier personnalisables et paramètres consultables par recherche
+• Google Drive, OneDrive, SFTP, FTP, WebDAV et SMB dans la barre latérale
+• Thèmes clairs, sombres et translucides avec aperçu en direct
+• Carte de l’espace disque pour examiner les gros dossiers avant le nettoyage
+• Renommage par lots avec modèles et numérotation
+• En option : ouvrir Atlas avec Win+E à la place de l’Explorateur de fichiers

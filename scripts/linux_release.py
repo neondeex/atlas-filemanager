@@ -70,11 +70,22 @@ def metadata(version, repo, output):
     repository(repo)
     output.mkdir(parents=True, exist_ok=True)
     date, notes = release_notes((ROOT / "CHANGELOG.md").read_text(), version)
-    release_url = f"https://github.com/{repo}/releases/tag/v{version}"
+    candidate_url = os.environ.get("ATLAS_CANDIDATE_URL", "")
+    if candidate_url and not re.fullmatch(r"https://github\.com/[^/\s]+/[^/\s]+/actions/runs/[0-9]+", candidate_url):
+        raise ValueError("Candidate URL must point to a GitHub Actions run")
+    release_url = candidate_url or f"https://github.com/{repo}/releases/tag/v{version}"
     data = dict(version=version, date=date, notes=notes, repository=repo,
-                release_url=release_url, prerelease="-" in version)
+                release_url=release_url, prerelease="-" in version,
+                distribution="beta-test" if candidate_url else "release",
+                revision=os.environ.get("GITHUB_SHA", ""),
+                edition=os.environ.get("ATLAS_EDITION", "full"))
     (output / "release.json").write_text(json.dumps(data, indent=2) + "\n")
     (output / "release-notes.md").write_text(notes + "\n")
+    source_url = os.environ.get("ATLAS_SOURCE_URL") or f"https://github.com/{repo}"
+    (output / "SOURCE-CODE.txt").write_text(
+        f"Atlas {version} — corresponding source\nRevision: {data['revision']}\n"
+        f"Edition: {data['edition']}\nSource: {source_url}\n"
+        "Keep the matching source ZIP with this beta distribution.\n", encoding="utf-8")
     component = ET.Element("component", type="desktop-application")
     for name, text in [("id", APP_ID), ("name", "Atlas"),
                        ("summary", "Manage files with multiple panes and fast keyboard navigation"),
@@ -175,6 +186,7 @@ def packages(version, repo, binary, output, tool_dir, data_dir):
         ROOT / "CHANGELOG.md": "share/doc/atlas/CHANGELOG.md",
         ROOT / "LICENSE": "share/licenses/atlas/LICENSE",
         ROOT / "legal/THIRD-PARTY-NOTICES.txt": "share/doc/atlas/THIRD-PARTY-NOTICES.txt",
+        data_dir / "SOURCE-CODE.txt": "share/doc/atlas/SOURCE-CODE.txt",
     }
     destinations.update({companion: f"bin/{companion.name}" for companion in companions})
     for source, relative in destinations.items():
@@ -189,7 +201,10 @@ def packages(version, repo, binary, output, tool_dir, data_dir):
     shutil.copytree(stage, appdir / "usr")
     env.update(APPIMAGE_EXTRACT_AND_RUN="1", ARCH="x86_64", OUTPUT=f"Atlas-{version}-x86_64.AppImage")
     owner, project = repo.split("/")
-    env["UPDATE_INFORMATION"] = f"gh-releases-zsync|{owner}|{project}|latest|Atlas-*-x86_64.AppImage.zsync"
+    if info["distribution"] == "release":
+        env["UPDATE_INFORMATION"] = f"gh-releases-zsync|{owner}|{project}|latest|Atlas-*-x86_64.AppImage.zsync"
+    else:
+        env.pop("UPDATE_INFORMATION", None)
     # Dependencies are collected by linuxdeploy; it intentionally excludes glibc.
     run(tool_dir / "linuxdeploy", "--appdir", appdir, "--executable", binary,
         "--desktop-file", ROOT / "packaging/linux/atlas.desktop", "--icon-file", icon,
@@ -199,6 +214,8 @@ def packages(version, repo, binary, output, tool_dir, data_dir):
     aur.mkdir(exist_ok=True)
     pkgver = version.replace("-", "_")
     dependencies = ["glibc", "gcc-libs", "openssl", "libxkbcommon", "libxkbcommon-x11", "libxcb", "fontconfig", "wayland", "vulkan-icd-loader", "libglvnd", "ttf-dejavu"]
+    recipe_source = (tarball.name if info["distribution"] == "beta-test" else
+                     f"{info['release_url'].replace('/tag/', '/download/')}/{tarball.name}")
     # This recipe only unpacks a pinned, checksummed upstream artifact.
     recipe = f'''# Maintained upstream; generated for Atlas {version}.
 pkgname=atlas-bin
@@ -212,7 +229,7 @@ depends=({' '.join(repr(d) for d in dependencies)})
 provides=('atlas')
 conflicts=('atlas')
 options=('!strip')
-source=('{info["release_url"].replace("/tag/", "/download/")}/{tarball.name}')
+source=('{recipe_source}')
 sha256sums=('{sha256(tarball)}')
 package() {{
     for binary in atlas atlas-search-service atlas-cloud-extension atlas-icon-extension; do
@@ -225,7 +242,7 @@ package() {{
     (aur / "PKGBUILD").write_text(recipe)
     srcinfo = ["pkgbase = atlas-bin", f"\tpkgdesc = Modern file manager built with Rust and GPUI", f"\tpkgver = {pkgver}", "\tpkgrel = 1", "\turl = https://atlasnative.com", "\tarch = x86_64", "\tlicense = AGPL-3.0-or-later"]
     srcinfo.extend(f"\tdepends = {d}" for d in dependencies)
-    srcinfo.extend(["\tprovides = atlas", "\tconflicts = atlas", "\toptions = !strip", f"\tsource = {info['release_url'].replace('/tag/', '/download/')}/{tarball.name}", f"\tsha256sums = {sha256(tarball)}", "", "pkgname = atlas-bin"])
+    srcinfo.extend(["\tprovides = atlas", "\tconflicts = atlas", "\toptions = !strip", f"\tsource = {recipe_source}", f"\tsha256sums = {sha256(tarball)}", "", "pkgname = atlas-bin"])
     (aur / ".SRCINFO").write_text("\n".join(srcinfo) + "\n")
     with tarfile.open(output / f"atlas-{version}-aur.tar.gz", "w:gz") as archive:
         archive.add(aur, arcname="atlas-bin")

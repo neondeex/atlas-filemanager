@@ -159,6 +159,7 @@ pub(super) fn paint_wheel(
                     // Sectors fade in clockwise from the pinned one.
                     let order = (index + count - selected.min(count - 1)) % count;
                     let alpha = super::render::sector_alpha(reveal, order, count);
+                    let base = if index == selected { colors.1 } else { base };
                     window.paint_path(path.clone(), gpui::ColorExt::opacity(&base, alpha));
                     if h > 0.003 && index != selected {
                         window.paint_path(
@@ -166,7 +167,7 @@ pub(super) fn paint_wheel(
                             gpui::ColorExt::opacity(&colors.3, alpha * h * (1. - s)),
                         );
                     }
-                    if s > 0.003 {
+                    if s > 0.003 && index != selected {
                         window.paint_path(path, gpui::ColorExt::opacity(&colors.1, alpha * s));
                     }
                 }

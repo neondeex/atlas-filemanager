@@ -58,6 +58,20 @@ class ReleaseMetadataTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 repository.verify_assets(output)
 
+    def test_private_beta_points_to_its_run_without_claiming_a_public_release(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "CHANGELOG.md").write_text("## [1.0.0-rc.1] - 2026-01-01\n\n- Fix preview\n")
+            env = dict(ATLAS_CANDIDATE_URL="https://github.com/owner/repo/actions/runs/123",
+                       GITHUB_SHA="a" * 40, ATLAS_EDITION="free")
+            with patch.object(release, "ROOT", root), patch.dict(os.environ, env):
+                info = release.metadata("1.0.0-rc.1", "owner/repo", root / "output")
+            self.assertEqual(info["distribution"], "beta-test")
+            self.assertEqual(info["edition"], "free")
+            self.assertEqual(info["revision"], "a" * 40)
+            tree = ET.parse(root / "output" / (release.APP_ID + ".metainfo.xml"))
+            self.assertEqual(tree.findtext("releases/release/url"), env["ATLAS_CANDIDATE_URL"])
+
     def test_stable_repository_rejects_prereleases_before_signing(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

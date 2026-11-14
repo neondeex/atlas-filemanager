@@ -1,7 +1,10 @@
 param(
     [string]$Version = "0.1.0",
     [switch]$PerfLog,
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    # Distributed builds are Free (paid features unlock by license); "full" is for local use only.
+    [ValidateSet("free", "full")]
+    [string]$Edition = "free"
 )
 
 $ErrorActionPreference = "Stop"
@@ -9,12 +12,28 @@ $repo = Split-Path $PSScriptRoot -Parent
 & python (Join-Path $repo "scripts\generate-third-party.py") --verify-release --scope desktop
 if ($LASTEXITCODE -ne 0) { throw "Third-party license verification failed." }
 
-if (-not $SkipBuild) {
-if ($PerfLog) {
-    cargo build --release --locked -p atlas -p atlas-search-service -p atlas-cloud-extension -p atlas-icon-extension --features perf-log
-} else {
-    cargo build --release --locked -p atlas -p atlas-search-service -p atlas-cloud-extension -p atlas-icon-extension
+$sourceUrl = if ($env:ATLAS_SOURCE_URL) { $env:ATLAS_SOURCE_URL } else {
+    "https://github.com/neondeex/atlas-filemanager/releases/download/v$Version/atlas-$Version-source.zip"
 }
+$installerDirectory = Join-Path $repo 'target\installer'
+New-Item -ItemType Directory -Force -Path $installerDirectory | Out-Null
+@"
+Atlas $Version corresponding source and build instructions:
+$sourceUrl
+The matching atlas-$Version-source.zip accompanies this test distribution.
+Atlas: AGPL-3.0-or-later. Third-party components retain their own licenses.
+See RCLONE-THIRD-PARTY-NOTICES.txt for the bundled rclone dependency notices.
+"@ | Set-Content -LiteralPath (Join-Path $installerDirectory 'SOURCE-CODE.txt') -Encoding UTF8
+
+if (-not $SkipBuild) {
+foreach ($proc in Get-Process -Name atlas, atlas-search-service -ErrorAction SilentlyContinue) {
+    Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+}
+$features = @()
+if ($Edition -eq "free") { $features += "free" }
+if ($PerfLog) { $features += "perf-log" }
+$featureArgs = if ($features.Count) { @("--features", ($features -join ",")) } else { @() }
+cargo build --release --locked -p atlas -p atlas-search-service -p atlas-cloud-extension -p atlas-icon-extension @featureArgs
 if ($LASTEXITCODE -ne 0) { throw "Windows build failed ($LASTEXITCODE)." }
 }
 & (Join-Path $PSScriptRoot "archive-symbols.ps1") -Version "$Version-installer"

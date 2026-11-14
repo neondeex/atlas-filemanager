@@ -59,6 +59,8 @@ jobs:
     uses: ./.github/workflows/linux-packages.yml
     with:
       version: ${{ needs.metadata.outputs.version }}
+      edition: free
+      source-url: https://github.com/${{ github.repository }}/releases/download/v${{ needs.metadata.outputs.version }}/atlas-${{ needs.metadata.outputs.version }}-source.zip
 
   publish:
     name: Publish verified GitHub release
@@ -72,8 +74,7 @@ jobs:
       GH_REPO: ${{ github.repository }}
     steps:
       - uses: actions/checkout@v4
-      # Windows updates are distributed through Microsoft Store. Keep Windows
-      # installers/MSIX in the workflow for maintainer testing and submission.
+      # The Store MSIX is submitted by hand; the direct-download installer ships with the release.
       - uses: actions/download-artifact@v4
         with:
           pattern: atlas-linux-*
@@ -83,6 +84,12 @@ jobs:
         with:
           name: atlas-source
           path: dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: atlas-windows-installer-x86_64
+          path: windows-installer
+      - name: Add the Windows installer to the release files
+        run: cp windows-installer/AtlasSetup-*.exe dist/
       - name: Final checksums and release notes
         run: |
           python3 scripts/linux_release.py metadata --version "$ATLAS_VERSION"
@@ -94,6 +101,12 @@ jobs:
           write_checksums(Path('dist'))
           PY
           (cd dist && sha256sum --check SHA256SUMS)
+      - name: Render winget, AUR and Flatpak manifests from the published files
+        run: python3 scripts/render_package_manifests.py --version "$ATLAS_VERSION" --dist dist --output target/package-manifests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-manifests
+          path: target/package-manifests
       - name: Create and publish a draft after all Linux checks pass
         run: |
           flags=()

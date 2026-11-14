@@ -50,6 +50,8 @@ Source: "..\..\target\release\atlas-cloud-extension.exe"; DestDir: "{app}"; Flag
 Source: "..\..\target\release\atlas-icon-extension.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\legal\THIRD-PARTY-NOTICES.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
+Source: "..\..\target\installer\SOURCE-CODE.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\packaging\windows\msix\RCLONE-THIRD-PARTY-NOTICES.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\crates\atlas-core\vendor\unrar-bin\UnRAR.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\target\extensions\cloud\rclone.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\target\extensions\cloud\THIRD-PARTY-NOTICES.txt"; DestDir: "{app}"; DestName: "CLOUD-THIRD-PARTY-NOTICES.txt"; Flags: ignoreversion

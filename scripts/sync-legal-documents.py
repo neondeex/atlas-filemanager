@@ -22,7 +22,7 @@ def outputs():
 <!-- Generated from legal/documents.json by scripts/sync-legal-documents.py. -->
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(document['title'])} | Atlas</title><meta name="description" content="{html.escape(document['description'], quote=True)}">
-<link rel="canonical" href="https://atlasnative.com/{slug}"><link rel="icon" href="/assets/atlas-logo.png"><link rel="stylesheet" href="/styles.css">
+<link rel="canonical" href="https://atlasnative.com/{slug}"><link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" type="image/png" sizes="96x96" href="/assets/favicon-96.png"><link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest"><link rel="stylesheet" href="/styles.css">
 <style>.prose section{{margin-block:2rem}}.prose p{{margin-block:1rem;line-height:1.8}}.prose a{{text-decoration:underline;text-underline-offset:3px}}.prose h2{{line-height:1.3}}.prose ul{{padding-left:1.5rem}}.legal-nav{{display:flex;gap:1rem;flex-wrap:wrap}}</style>
 <script defer src="/privacy-choices.js"></script></head>
 <body class="doc"><header class="nav"><a class="brand" href="/"><img src="/assets/atlas-logo.png" alt="" width="28" height="28"><span>Atlas</span></a><a class="btn light sm" href="/">Back to Atlas</a></header>

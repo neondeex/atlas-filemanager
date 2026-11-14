@@ -161,6 +161,8 @@ impl App {
                     // legacy per-tab flag made it vanish when focus moved.
                     let show = !self.preview_visible_for_focused();
                     self.state.settings.show_inspector = show;
+                    // Every pane chrome shows the panel toggle state.
+                    self.dirty_panes.extend(self.state.all_pane_tile_ids());
                     self.state
                         .for_each_tab_data_mut(|tab| tab.preview_enabled = false);
                     if !show {
@@ -778,6 +780,35 @@ impl App {
                         }
                         ts.selection.selected = flat_visible.iter().copied().collect();
                         ts.selection.keyboard_cursor = ts.selection.selected.iter().next().copied();
+                    }
+                }
+                Action::SortBy(col) => {
+                    use atlas_model::file_entry::{SortColumn, SortDir};
+                    let current = self
+                        .tab_data_for(self.state.focused_tile)
+                        .map(|t| (t.sort_col.clone(), t.sort_dir.clone()));
+                    let dir = match current {
+                        Some((c, SortDir::Asc)) if c == col => SortDir::Desc,
+                        Some((c, SortDir::Desc)) if c == col => SortDir::Asc,
+                        // Dates and sizes are most useful newest/largest first.
+                        _ if matches!(col, SortColumn::Modified | SortColumn::Size) => {
+                            SortDir::Desc
+                        }
+                        _ => SortDir::Asc,
+                    };
+                    self.process_actions([Action::SetSort { col, dir }]);
+                }
+                Action::ReverseSort => {
+                    use atlas_model::file_entry::SortDir;
+                    if let Some((col, dir)) = self
+                        .tab_data_for(self.state.focused_tile)
+                        .map(|t| (t.sort_col.clone(), t.sort_dir.clone()))
+                    {
+                        let dir = match dir {
+                            SortDir::Asc => SortDir::Desc,
+                            SortDir::Desc => SortDir::Asc,
+                        };
+                        self.process_actions([Action::SetSort { col, dir }]);
                     }
                 }
                 Action::SetGroupBy(mode) => {

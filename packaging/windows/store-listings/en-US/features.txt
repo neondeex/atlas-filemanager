@@ -1,12 +1,13 @@
-• Native High Performance: Built in Rust with GPU acceleration for instant startup and fluid 60+ FPS navigation.
-• Tabs & Dual Panes: Multitask effortlessly with unlimited tabs and flexible horizontal or vertical split panes.
-• Multiple View Modes: Seamlessly switch between Detailed List, Thumbnail Grid, and Miller Columns.
-• Instant Search: Lightning-fast indexed search and fuzzy filtering that finds files across drives in milliseconds.
-• Visual Disk Space Cleanup: Interactive drive visualizer and cleanup tools to identify large files and reclaim storage.
-• Encrypted Private Vaults: Secure sensitive folders with password-protected local encryption for total privacy.
-• Command Palette: Instant keyboard access to all commands, settings, and navigation destinations via Ctrl+P.
-• Batch File Renaming: Rename hundreds of files simultaneously using customizable patterns, numbering, and replacement rules.
-• Built-In Rich Previews: Instant preview for code, markdown, PDFs, images, audio, video, and compressed archives.
-• Cloud & Network Integration: Access Google Drive, OneDrive, Dropbox, and network drives seamlessly from the sidebar.
-• Privacy-First: Zero telemetry, no user tracking, and completely offline operation.
-• Customizable Profiles & Themes: Tailor color themes, file icons, and settings for work, development, or personal use.
+• Tabs and split panes, each with its own view and history
+• Search a folder and all of its subfolders
+• Preview images, PDFs, Markdown, text and code beside the file list
+• Convert files from a format ring, for example JPG to PNG, WebP or PDF
+• Open ZIP archives like folders and preview their contents
+• Details, grid, list, column and tree views
+• Command palette with every action and its keyboard shortcut
+• Remappable keyboard shortcuts and searchable settings
+• Google Drive, OneDrive, SFTP, FTP, WebDAV and SMB in the sidebar
+• Light, dark and glass themes with live preview
+• Disk usage map to review large folders before cleaning up
+• Batch rename with patterns and numbering
+• Optional: open Atlas with Win+E instead of File Explorer

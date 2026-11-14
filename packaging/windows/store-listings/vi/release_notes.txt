@@ -1,15 +1,8 @@
-Atlas Trình quản lý tệp 0.1.0 — Bản phát hành đầu tiên
+Atlas File Manager giúp bạn duyệt và sắp xếp tệp trên Windows. Mở thư mục trong các tab, so sánh vị trí bằng khung chia và chọn chế độ chi tiết, lưới hoặc cột.
 
-Chào mừng bạn đến với bản phát hành chính thức đầu tiên của Atlas Trình quản lý tệp dành cho Windows!
-
-Các điểm nổi bật chính:
-• Hiệu năng vượt trội: Được phát triển từ đầu bằng Rust với khả năng tăng tốc DirectX/GPU nguyên bản, mang lại độ phản hồi 60+ FPS mượt mà và dung lượng bộ nhớ tối thiểu.
-• Thẻ & Hai ngăn tách biệt: Tổ chức công việc của bạn với số lượng thẻ không giới hạn cùng bố cục ngăn tách (cạnh nhau hoặc xếp chồng).
-• Chế độ xem linh hoạt: Danh sách chi tiết, lưới hình thu nhỏ và chế độ xem cột Miller thích ứng với quy trình làm việc của bạn.
-• Tìm kiếm tức thì & Đi đến: Lọc mờ theo thời gian thực trên khắp các ổ đĩa cục bộ với kết quả chỉ trong mili giây.
-• Phân tích dung lượng đĩa trực quan: Bản đồ đĩa tương tác trực quan giúp xác định các tệp chiếm dụng dung lượng và dọn dẹp tệp tạm thời một cách an toàn.
-• Kho lưu trữ mã hóa riêng tư: Mã hóa thư mục cục bộ bằng mật khẩu bảo vệ, giữ an toàn và cô lập dữ liệu riêng tư của bạn.
-• Bảng lệnh cho người dùng nâng cao: Bảng lệnh nhanh (Ctrl+P) và các phím tắt tùy chỉnh giúp tối đa hóa hiệu quả làm việc bằng bàn phím.
-• Đổi tên hàng loạt: Đổi tên nhiều tệp tốc độ cao với tính năng đánh số thứ tự, tìm kiếm thay thế và xem trước trực tiếp.
-• Xem trước phong phú tích hợp sẵn: Kiểm tra tức thì hình ảnh, tệp PDF, Markdown, mã nguồn được tô sáng cú pháp, âm thanh, video và tệp nén.
-• Hỗ trợ tiếng Việt chuẩn xác (vi): Bản địa hóa hoàn chỉnh bám sát chuẩn mực giao diện Windows desktop.
+• Tab và khung chia
+• Chế độ xem chi tiết, lưới và cột
+• Tìm kiếm tệp và lọc thư mục
+• Xem trước các định dạng được hỗ trợ
+• Hiển thị dung lượng đĩa và xem xét dọn dẹp
+• Đổi tên hàng loạt bằng mẫu và đánh số

@@ -1,1 +1,1 @@
-Nativer Dateimanager mit Tabs, Zwei-Fenster-Modus, Speicheranalyse und 100 % Datenschutz.
+Dateimanager für Windows mit Tabs, geteilten Ansichten, Unterordnersuche, Vorschau und ZIP.

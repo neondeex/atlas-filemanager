@@ -39,6 +39,7 @@ pub(crate) enum DgNavAction {
     Forward,
     Up,
     Bookmark,
+    TogglePreview,
     Segment(usize),
     Chevron(usize),
     OpenLocation,
@@ -61,6 +62,7 @@ pub(crate) struct DgChromeElement {
     can_forward: bool,
     can_up: bool,
     bookmarked: bool,
+    preview_open: bool,
     windows_theme: bool,
     is_glass: bool,
     fg: Hsla,
@@ -108,6 +110,7 @@ impl DgChromeElement {
         can_forward: bool,
         can_up: bool,
         bookmarked: bool,
+        preview_open: bool,
         windows_theme: bool,
         is_glass: bool,
         fg: Hsla,
@@ -126,6 +129,7 @@ impl DgChromeElement {
             can_forward,
             can_up,
             bookmarked,
+            preview_open,
             windows_theme,
             is_glass,
             fg,
@@ -290,6 +294,21 @@ impl Element for DgChromeElement {
                 action,
             });
             let _ = slicer.cut_left(gap);
+        }
+
+        // The preview panel toggle sits at the far right so it is discoverable
+        // without knowing the Space shortcut.
+        if total_w >= 260.0 * zoom && slicer.w >= btn_sz + gap + min_crumbs_w {
+            let mut slot = slicer.cut_right(btn_sz);
+            slot.y = y_btn;
+            slot.h = btn_sz;
+            nav_buttons.push(DgNavButtonSlot {
+                slot,
+                icon: AtlasIcon::Eye,
+                enabled: true,
+                action: DgNavAction::TogglePreview,
+            });
+            let _ = slicer.cut_right(gap);
         }
 
         // Gap between the nav buttons and the address field.
@@ -590,11 +609,15 @@ impl Element for DgChromeElement {
                 } else {
                     self.muted.opacity(0.35)
                 };
-                let icon_color = if matches!(btn.action, DgNavAction::Bookmark) && self.bookmarked {
-                    self.accent
-                } else {
-                    color
+                let toggled = match btn.action {
+                    DgNavAction::Bookmark => self.bookmarked,
+                    DgNavAction::TogglePreview => self.preview_open,
+                    _ => false,
                 };
+                if toggled && matches!(btn.action, DgNavAction::TogglePreview) {
+                    paint_rounded(window, b, prepaint.radius, self.accent.opacity(0.12));
+                }
+                let icon_color = if toggled { self.accent } else { color };
                 paint_theme_icon(
                     window,
                     cx,
@@ -705,7 +728,7 @@ impl Element for DgChromeElement {
                     DgNavAction::Back => can_back,
                     DgNavAction::Forward => can_forward,
                     DgNavAction::Up => can_up,
-                    DgNavAction::Bookmark => true,
+                    DgNavAction::Bookmark | DgNavAction::TogglePreview => true,
                     _ => false,
                 };
                 if enabled {
@@ -747,6 +770,11 @@ impl Element for DgChromeElement {
                                     this.process_actions(vec![Action::AddBookmark { name, path }]);
                                 }
                             }
+                        }
+                        DgNavAction::TogglePreview => {
+                            this.activate_tab(pane_id);
+                            this.process_actions(vec![Action::ToggleInspector]);
+                            cx.notify();
                         }
                         DgNavAction::Segment(i) => {
                             if let Some(seg) = segs.get(i) {

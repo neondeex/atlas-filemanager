@@ -74,3 +74,6 @@ website/
 /profiling_summary.txt
 target*/
 leaks*.json
+
+# Unified local delivery artifacts
+/dist/

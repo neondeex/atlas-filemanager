@@ -1,1 +1,1 @@
-Gestionnaire de fichiers rapide avec onglets, double volet, nettoyage de disque et vie privée.
+Gestionnaire de fichiers Windows : onglets, volets, recherche, aperçus et archives ZIP.

@@ -746,7 +746,7 @@ impl Element for InspectorDgElement {
 
         // 1. Header interactive action slots
         all_hits.push((layout.close_btn_slot, InspectorDgHitAction::Close));
-        tooltips.push((layout.close_btn_slot, "Close Inspector (F4)".into()));
+        tooltips.push((layout.close_btn_slot, "Close Inspector".into()));
 
         all_hits.push((layout.collapse_btn_slot, InspectorDgHitAction::Collapse));
         tooltips.push((
@@ -754,7 +754,7 @@ impl Element for InspectorDgElement {
             if self.expanded {
                 "Collapse Preview".into()
             } else {
-                "Expand Preview (Space)".into()
+                "Expand Preview".into()
             },
         ));
 

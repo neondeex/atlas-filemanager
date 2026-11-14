@@ -1,12 +1,13 @@
-• Yerel Yüksek Performans: Anında açılış ve akıcı 60+ FPS gezinti için doğrudan GPU hızlandırması ile Rust dilinde geliştirildi.
-• Sekmeler ve Çift Bölme: Sınırsız sekme ve esnek yatay veya dikey bölünmüş bölmelerle çoklu görevleri zahmetsizce yönetin.
-• Çoklu Görünüm Modları: Ayrıntılı Liste, Küçük Resim Izgarası ve Miller Sütunları arasında sorunsuz geçiş yapın.
-• Anında Arama: Sürücüler genelinde dosyaları milisaniyeler içinde bulan yıldırım hızında dizinlenmiş arama ve esnek filtreleme.
-• Görsel Disk Alanı Temizleme: Büyük dosyaları tespit edip depolama alanını geri kazanmak için etkileşimli sürücü görselleştiricisi ve temizleme araçları.
-• Şifreli Özel Kasalar: Tam gizlilik için parola korumalı yerel şifreleme ile hassas klasörleri güvenceye alın.
-• Komut Paleti: Ctrl+P ile tüm komutlara, ayarlara ve gezinti hedeflerine anında klavyeden erişim.
-• Toplu Dosya Yeniden Adlandırma: Özelleştirilebilir şablonlar, numaralandırma ve değiştirme kurallarıyla yüzlerce dosyayı aynı anda yeniden adlandırın.
-• Yerleşik Zengin Önizlemeler: Kod, markdown, PDF, resim, ses, video ve sıkıştırılmış arşivler için anında önizleme.
-• Bulut ve Ağ Entegrasyonu: Google Drive, OneDrive, Dropbox ve ağ sürücülerine kenar çubuğundan sorunsuz erişim.
-• Tamamen Gizlilik Odaklı: Sıfır telemetri, kullanıcı takibi yok ve tamamen çevrimdışı çalışma.
-• Özelleştirilebilir Profiller ve Temalar: Renk temalarını, dosya simgelerini ve ayarları iş, geliştirme veya kişisel kullanım için uyarlayın.
+• Her biri kendi görünümünü ve geçmişini koruyan sekmeler ve bölünmüş paneller
+• Bir klasörde ve tüm alt klasörlerinde arama
+• Görüntü, PDF, Markdown, metin ve kod önizlemesi dosya listesinin yanında
+• Biçim halkasından dönüştürme, örneğin JPG'den PNG, WebP veya PDF'ye
+• ZIP arşivlerini klasör gibi açma ve içeriği önizleme
+• Ayrıntı, ızgara, liste, sütun ve ağaç görünümleri
+• Tüm işlemleri ve kısayollarını gösteren komut paleti
+• Değiştirilebilir klavye kısayolları ve aranabilir ayarlar
+• Kenar çubuğunda Google Drive, OneDrive, SFTP, FTP, WebDAV ve SMB
+• Canlı önizlemeli açık, koyu ve cam temalar
+• Temizlikten önce büyük klasörleri incelemek için disk kullanım haritası
+• Desen ve numaralandırma ile toplu ad değiştirme
+• İsteğe bağlı: Dosya Gezgini yerine Win+E ile Atlas'ı açma

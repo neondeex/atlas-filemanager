@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+PackageIdentifier: NeonDeex.AtlasFM
+PackageVersion: 0.1.6-beta.2
+InstallerLocale: en-US
+InstallerType: inno
+Scope: machine
+InstallModes:
+  - interactive
+  - silent
+  - silentWithProgress
+InstallerSwitches:
+  Silent: /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-
+  SilentWithProgress: /SILENT /SUPPRESSMSGBOXES /NORESTART /SP-
+UpgradeBehavior: install
+ReleaseDate: 2026-11-13
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/neondeex/atlas-filemanager/releases/download/v0.1.6-beta.2/AtlasSetup-0.1.6-beta.2.exe
+    InstallerSha256: 1DA82C55D2A5B0224D879CA580B65E08F6C9E65525EF662600963ECEDA685D32
+    ProductCode: '{A66B9F93-8F34-4D8A-8D6A-A71A50000001}_is1'
+ManifestType: installer
+ManifestVersion: 1.6.0

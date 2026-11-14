@@ -91,6 +91,15 @@ fn theme_set(config: &ThemeConfig) -> ThemeSet {
 }
 
 impl App {
+    pub(crate) fn theme_color_picker_open(&self, cx: &gpui::App) -> bool {
+        self.theme_editor.as_ref().is_some_and(|editor| {
+            editor
+                .controls
+                .iter()
+                .any(|(_, control)| control.read(cx).is_open())
+        })
+    }
+
     pub(crate) fn fork_active_theme(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let registry = ThemeRegistry::global(cx);
         let Some(base) = registry

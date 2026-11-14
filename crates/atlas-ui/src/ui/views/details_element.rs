@@ -323,6 +323,7 @@ impl Element for DetailsBodyElement {
             end_idx,
             total_count: visible.len(),
             presented_rows: presented_rows.clone(),
+            name_right: Some(viewport_bounds.left() + px(layout.name_x + layout.name_col_w)),
         };
         drop(hit_perf);
 

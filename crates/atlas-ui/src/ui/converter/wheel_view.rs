@@ -12,6 +12,44 @@ use gpui::{div, px, Context, IntoElement, MouseButton, Render, WeakEntity, Windo
 use gpui_component::ActiveTheme;
 use std::time::Instant;
 
+/// Pick readable ink against the actual opaque sector, including custom themes.
+fn sector_ink(background: gpui::Hsla) -> gpui::Hsla {
+    let rgba = gpui::hsla_to_rgba(background);
+    let linear = |channel: f32| {
+        if channel <= 0.04045 {
+            channel / 12.92
+        } else {
+            ((channel + 0.055) / 1.055).powf(2.4)
+        }
+    };
+    let luminance =
+        0.2126 * linear(rgba.red) + 0.7152 * linear(rgba.green) + 0.0722 * linear(rgba.blue);
+    if luminance > 0.179 {
+        gpui::black()
+    } else {
+        gpui::white()
+    }
+}
+
+#[cfg(test)]
+mod contrast_tests {
+    use super::*;
+
+    #[test]
+    fn sector_labels_choose_contrasting_ink_in_dark_light_and_accent_colors() {
+        for (background, expected) in [
+            (gpui::black(), gpui::white()),
+            (gpui::white(), gpui::black()),
+            (gpui::yellow(), gpui::black()),
+            (gpui::blue(), gpui::white()),
+            (gpui::rgb_to_hsla(gpui::rgb(0xff6600)), gpui::black()),
+            (gpui::rgb_to_hsla(gpui::rgb(0x18181b)), gpui::white()),
+        ] {
+            assert_eq!(sector_ink(background), expected);
+        }
+    }
+}
+
 #[derive(Clone, PartialEq)]
 pub(super) struct WheelOption {
     pub label: gpui::SharedString,
@@ -115,11 +153,10 @@ impl Render for WheelView {
         let scale = scale * (0.80 + 0.20 * ease_out_back(smooth(progress, 0.0, 0.7)));
         let diameter = geometry::radius(&rings) * 2.0 * scale;
 
-        let (accent, accent_fg, fg, muted, border, popover, secondary) = {
+        let (accent, fg, muted, border, popover, secondary) = {
             let t = cx.theme();
             (
                 t.accent,
-                t.accent_foreground,
                 t.foreground,
                 t.muted_foreground,
                 t.border,
@@ -129,16 +166,10 @@ impl Render for WheelView {
         };
         // Glass sectors sit on a frosted disc (below), so a light veil is
         // enough; a bare translucent fill let file names read through.
-        let sector_fill = if is_glass {
-            fg.opacity(if dark { 0.16 } else { 0.12 })
-        } else {
-            secondary.opacity(if dark { 0.97 } else { 0.92 })
-        };
-        let sector_disabled = if is_glass {
-            fg.opacity(0.05)
-        } else {
-            muted.opacity(0.22)
-        };
+        // Opaque sectors keep file names from showing through the labels.
+        let sector_fill = secondary.opacity(1.0);
+        let sector_disabled = popover.opacity(1.0);
+        let active_fill = accent.opacity(1.0);
 
         // A faint halo keeps the sectors legible over busy file lists.
         let halo = ease_out_cubic(smooth(progress, 0.0, 0.5));
@@ -163,7 +194,12 @@ impl Render for WheelView {
                 selected,
                 hovered,
                 options.iter().map(|o| o.available).collect(),
-                (sector_fill, accent, sector_disabled, accent.opacity(0.45)),
+                (
+                    sector_fill,
+                    active_fill,
+                    sector_disabled,
+                    accent.opacity(0.22),
+                ),
                 progress,
                 (self.hover_amt.clone(), self.sel_amt.clone()),
                 self.app.clone(),
@@ -201,9 +237,13 @@ impl Render for WheelView {
                         .line_height(px(size * 1.4))
                         .font_weight(gpui::FontWeight::SEMIBOLD)
                         .text_color(if selected == index {
-                            accent_fg
+                            sector_ink(active_fill)
                         } else {
-                            fg.opacity(if option.available { 0.90 } else { 0.40 })
+                            sector_ink(if option.available {
+                                sector_fill
+                            } else {
+                                sector_disabled
+                            })
                         })
                         .child(label),
                 );

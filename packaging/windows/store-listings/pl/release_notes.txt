@@ -1,15 +1,8 @@
-Menedżer plików Atlas 0.1.0 — Pierwsze wydanie
+Atlas File Manager pomaga przeglądać i porządkować pliki w Windows. Otwieraj foldery w kartach, porównuj lokalizacje w podzielonych panelach i wybieraj widok szczegółów, siatki lub kolumn.
 
-Witamy w pierwszym oficjalnym wydaniu Atlas File Manager dla systemu Windows!
-
-Główne cechy:
-• Błyskawiczna wydajność: Silnik napisany od podstaw w języku Rust z natywną akceleracją DirectX/GPU zapewnia płynne 60+ FPS i minimalne zużycie pamięci.
-• Karty i widok podzielony: Organizuj pracę dzięki nielimitowanym kartom i elastycznym układom podwójnego okna (obok siebie lub pionowo).
-• Elastyczne tryby widoku: Lista szczegółowa, siatka miniatur oraz wielokolumnowy widok Millera dopasowany do Twojego stylu pracy.
-• Błyskawiczne wyszukiwanie: Filtrowanie rozmyte w czasie rzeczywistym na dyskach lokalnych z wynikami w milisekundach.
-• Wizualny analizator dysku: Interaktywna mapa zajętości pamięci do lokalizowania największych plików i bezpiecznego usuwania plików tymczasowych.
-• Szyfrowane magazyny prywatne: Lokalne szyfrowanie folderów zabezpieczone hasłem gwarantujące pełną izolację poufnych danych.
-• Narzędzia dla zaawansowanych: Szybka paleta poleceń (Ctrl+P) i w pełni konfigurowalne skróty klawiszowe.
-• Wsadowa zmiana nazw: Szybka zmiana nazw wielu plików z numeracją sekwencyjną, regułami zamiany i podglądem na żywo.
-• Bogaty wbudowany podgląd: Natychmiastowy podgląd obrazów, plików PDF, Markdown, podświetlanego kodu źródłowego, dźwięku, wideo i archiwów.
-• Język polski (pl): W pełni dopracowana, rodzima polska lokalizacja zgodna ze standardami pulpitu Windows.
+• Karty i podzielone panele
+• Widoki szczegółów, siatki i kolumn
+• Wyszukiwanie plików i filtrowanie folderów
+• Podgląd obsługiwanych formatów
+• Wizualizacja użycia dysku i przegląd czyszczenia
+• Zbiorcza zmiana nazw według wzorców i numeracji

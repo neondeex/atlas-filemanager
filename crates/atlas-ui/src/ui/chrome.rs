@@ -252,6 +252,7 @@ impl App {
                     can_forward,
                     up_location.is_some(),
                     is_bookmarked,
+                    self.preview_visible_for_focused(),
                     windows_theme,
                     is_glass,
                     fg,

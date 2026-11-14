@@ -1,15 +1,8 @@
-Atlas File Manager 0.1.0 — Initial Release
+Atlas File Manager helps you browse, organize and manage files on Windows. Keep folders open in tabs, compare locations in split panes and choose a details, grid or column view.
 
-Welcome to the first official release of Atlas File Manager for Windows!
-
-Key Highlights:
-• Blazing-Fast Performance: Engineered from the ground up in Rust with native DirectX/GPU acceleration for fluid 60+ FPS responsiveness and near-zero memory footprint.
-• Tabs & Split Dual Panes: Organize your workflow with unlimited tabs and split-pane layouts (side-by-side or stacked).
-• Flexible View Modes: Detailed list, thumbnail grid, and multi-column Miller view adapted to your workflow.
-• Instant Search & Goto: Real-time fuzzy filtering across local drives with millisecond results.
-• Visual Disk Space Analyzer: Interactive visual disk map to pinpoint storage hogs and clean up temporary files safely.
-• Encrypted Private Vaults: Password-protected local folder encryption keeping your private data secure and isolated.
-• Power-User Keyboard Palette: Quick command palette (Ctrl+P) and customizable shortcuts for hands-on-keyboard efficiency.
-• Batch Renaming: High-speed multi-file renamer with sequence numbering, find-and-replace, and live previews.
-• Built-In Rich Previews: Instant inspection for images, PDFs, Markdown, syntax-highlighted code, audio, video, and archives.
-• Native American English (en-US): Fully standardized localization strictly adhering to Windows desktop conventions.
+• Tabs and split panes
+• Details, grid and column views
+• File search and folder filtering
+• Previews for supported file formats
+• Disk usage visualization and cleanup review
+• Batch renaming with patterns and numbering

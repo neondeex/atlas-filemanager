@@ -1,15 +1,8 @@
-Versionshinweise für Atlas Dateimanager v0.1.0:
+Atlas File Manager hilft beim Durchsuchen und Organisieren von Dateien unter Windows. Öffnen Sie Ordner in Tabs, vergleichen Sie Speicherorte in geteilten Ansichten und wählen Sie eine Detail-, Raster- oder Spaltenansicht.
 
-Willkommen zur ersten Veröffentlichung von Atlas Dateimanager für Windows!
-
-Hauptmerkmale dieser Version:
-- Höchstleistung: Vollständig in Rust implementiert mit moderner GPU-Beschleunigung für flüssiges Scrollen und minimale Latenz.
-- Multitasking: Tab-Unterstützung und vertikale/horizontale Zwei-Fenster-Ansicht (Dual-Pane) für mühelose Dateiverwaltung.
-- Vielfältige Ansichten: Details, Symbole, Liste, Kaskadierende Spalten (Miller-Columns) und Baumstruktur.
-- Speicherplatz-Visualisierung: Interaktive Kachelkarte zur Erkennung großer Dateien und sichere Datenträgerbereinigung mit schnellem NTFS-MFT-Leser.
-- Integrierte Dateikonvertierung: Radialmenü zur schnellen Umwandlung von Bildern, Dokumenten, Video- und Audiodateien unter Beibehaltung der Originale.
-- Geschützte Ordner: Robuste lokale AES-Verschlüsselung mit virtuellem Einbinden für private Daten.
-- Smarte Navigation: Schnelle „Gehe zu“-Fuzzy-Suche, Befehlspalette für alle Aktionen und Grep-Inhaltssuche.
-- Effiziente Dateiverwaltung: Mehrfachumbenennung mit Mustern und Multicursor, Datei-Tagging und temporäre Ablageleiste.
-- Volle Anpassbarkeit: Profile, Farbschemata, Symbolpakete und optionaler Vim-Modus.
-- 100 % Privatsphäre: Keine Telemetrie, keine Nachverfolgung, komplett offline nutzbar.
+• Tabs und geteilte Ansichten
+• Detail-, Raster- und Spaltenansichten
+• Dateisuche und Ordnerfilter
+• Vorschau unterstützter Dateiformate
+• Speicherplatzübersicht und Prüfung vor der Bereinigung
+• Stapelumbenennung mit Mustern und Nummerierung

@@ -41,6 +41,9 @@ rust_i18n::i18n!("locales", fallback = "en");
 
 mod input;
 
+#[cfg(test)]
+mod color_input_tests;
+
 pub mod app;
 pub mod assets;
 /// Platform drag-and-drop: neutral types + Windows OLE implementation.
@@ -305,7 +308,6 @@ pub fn run(
             KeyBinding::new("ctrl-shift-tab", PrevTab, Some("Atlas")),
             // Phase D: overlays / panels / toggles.
             KeyBinding::new("ctrl-f", OpenSearchInPlace, Some("Atlas")),
-            KeyBinding::new("space", ToggleInspector, Some("Atlas")),
             KeyBinding::new("escape", CloseOverlays, Some("Atlas")),
             // Phase D: pane structure.
             KeyBinding::new("alt-tab", FocusNextPane, Some("Atlas")),
@@ -366,6 +368,11 @@ pub fn run(
                 closing_app
                     .update(cx, |app, cx| {
                         let allowed = app.close_native_vault(false);
+                        // The title-bar close destroys the window (and this
+                        // view) before `on_app_quit` runs, so persist here.
+                        if allowed {
+                            app.save_on_quit();
+                        }
                         cx.notify();
                         allowed
                     })

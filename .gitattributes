@@ -19,3 +19,7 @@ vendor/** -whitespace
 *.zip binary
 *.rar binary
 *.ttf binary
+
+# AUR and Flatpak files must stay LF
+packaging/linux/aur/* text eol=lf
+packaging/linux/flatpak/* text eol=lf

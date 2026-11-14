@@ -17,7 +17,7 @@
   <Properties>
     <DisplayName>Atlas File Manager</DisplayName>
     <PublisherDisplayName>Cuber Labs</PublisherDisplayName>
-    <Description>A fast, modern file manager.</Description>
+    <Description>A file manager for Windows.</Description>
     <Logo>Assets\StoreLogo.png</Logo>
     <!-- Win+E integration must write the real HKCU so Explorer sees it. -->
     <virtualization:RegistryWriteVirtualization>
@@ -33,6 +33,10 @@
       Name="Windows.Desktop"
       MinVersion="10.0.17763.0"
       MaxVersionTested="10.0.26100.0" />
+    <PackageDependency
+      Name="Microsoft.VCLibs.140.00.UWPDesktop"
+      MinVersion="14.0.24217.0"
+      Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" />
   </Dependencies>
 
   <Resources>
@@ -65,7 +69,7 @@
       <uap:VisualElements
         AppListEntry="default"
         DisplayName="Atlas File Manager"
-        Description="A fast, modern file manager."
+        Description="A file manager for Windows."
         BackgroundColor="#18181B"
         Square44x44Logo="Assets\Square44x44Logo.png"
         Square150x150Logo="Assets\Square150x150Logo.png">

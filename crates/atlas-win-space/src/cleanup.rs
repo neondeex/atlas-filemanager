@@ -232,13 +232,12 @@ pub fn local_drive(path: &Path) -> bool {
 mod tests {
     use super::*;
     fn fixture() -> std::path::PathBuf {
+        // The Windows clock is coarse: parallel tests can read the same instant.
+        static NEXT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
         let path = std::env::temp_dir().join(format!(
             "atlas-cleanup-{}-{}",
             std::process::id(),
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_nanos()
+            NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
         ));
         std::fs::create_dir(&path).unwrap();
         path

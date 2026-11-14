@@ -1,12 +1,13 @@
-• Alto Desempenho Nativo: Construído do zero em Rust com aceleração por GPU para inicialização instantânea e navegação a mais de 60 FPS.
-• Abas e Painel Duplo: Organize fluxos multitarefa com abas ilimitadas e divisões de tela flexíveis (lado a lado ou empilhadas).
-• Modos de Exibição Múltiplos: Alterne com fluidez entre Lista Detalhada, Grade de Miniaturas e Navegação em Colunas (estilo Miller).
-• Pesquisa Instantânea: Busca indexada ultrarrápida e filtros inteligentes que localizam arquivos em qualquer unidade em milissegundos.
-• Analisador e Limpeza de Disco: Mapa visual interativo do espaço em disco para identificar grandes arquivos e liberar armazenamento com total segurança.
-• Cofres Privados Criptografados: Proteja pastas confidenciais com criptografia local segura por senha, invisíveis fora do cofre.
-• Paleta de Comandos: Acesso instantâneo a todos os recursos, configurações e atalhos pelo teclado através do atalho Ctrl+P.
-• Renomeação em Lote: Renomeie centenas de arquivos simultaneamente com regras flexíveis de numeração, substituição e pré-visualização ao vivo.
-• Visualização Prévia Integrada: Pré-visualize instantaneamente códigos com destaque de sintaxe, Markdown, PDFs, fotos em alta resolução, áudio e vídeo.
-• Integração com Nuvem e Rede: Conecte contas de armazenamento na nuvem e servidores de rede diretamente na barra lateral.
-• Privacidade Absoluta: Zero telemetria, sem coleta de dados do usuário e com funcionamento 100% local e offline.
-• Perfis e Temas Personalizáveis: Adapte temas de cores, conjuntos de ícones e preferências individuais para trabalho, projetos ou uso pessoal.
+• Abas e painéis divididos, cada um com sua própria visualização e histórico
+• Pesquisa em uma pasta e em todas as suas subpastas
+• Prévia de imagens, PDFs, Markdown, texto e código ao lado da lista
+• Conversão a partir de um anel de formatos, por exemplo JPG para PNG, WebP ou PDF
+• Arquivos ZIP abertos como pastas, com prévia do conteúdo
+• Visualizações de detalhes, grade, lista, colunas e árvore
+• Paleta de comandos com todas as ações e seus atalhos
+• Atalhos de teclado personalizáveis e configurações pesquisáveis
+• Google Drive, OneDrive, SFTP, FTP, WebDAV e SMB na barra lateral
+• Temas claros, escuros e translúcidos com prévia ao vivo
+• Mapa de uso do disco para revisar pastas grandes antes de limpar
+• Renomeação em lote com padrões e numeração
+• Opcional: abrir o Atlas com Win+E em vez do Explorador de Arquivos

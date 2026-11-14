@@ -182,6 +182,9 @@ pub enum Action {
         col: SortColumn,
         dir: SortDir,
     },
+    /// Sort the focused pane by a column; repeating it flips the direction.
+    SortBy(SortColumn),
+    ReverseSort,
     SetGroupBy(atlas_model::tab::GroupBy),
     ToggleGroup {
         tab: TabId,

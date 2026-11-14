@@ -1,15 +1,8 @@
-Atlas Bestandsbeheer 0.1.0 — Eerste officiële release
+Atlas File Manager helpt bij het bekijken en ordenen van bestanden in Windows. Open mappen in tabbladen, vergelijk locaties in gesplitste panelen en kies een detail-, raster- of kolomweergave.
 
-Welkom bij de eerste officiële release van Atlas Bestandsbeheer voor Windows!
-
-Belangrijkste kenmerken:
-• Razendsnelle prestaties: Vanaf de basis gebouwd in Rust met native DirectX/GPU-versnelling voor een vloeiende 60+ FPS-responsiviteit en een minimale geheugenvoetdruk.
-• Tabbladen & dubbele deelvensters: Organiseer je workflow met onbeperkte tabbladen en gesplitste vensterindelingen (naast elkaar of boven elkaar).
-• Flexibele weergavemodi: Gedetailleerde lijst, miniaturenraster en trapsgewijze Miller-kolommen aangepast aan jouw manier van werken.
-• Direct zoeken & Ga naar: Realtime fuzzy-filtering over lokale stations met zoekresultaten in milliseconden.
-• Visuele schijfruimte-analyse: Interactieve visuele schijfkaart om grootverbruikers op te sporen en tijdelijke bestanden veilig op te ruimen.
-• Versleutelde privékluizen: Met een wachtwoord beveiligde lokale mapversleuteling om persoonlijke gegevens veilig en geïsoleerd te houden.
-• Opdrachtenpalet voor gevorderden: Snel opdrachtenpalet (Ctrl+P) en aanpasbare sneltoetsen voor optimale toetsenbordbediening.
-• Meerdere bestanden hernoemen: Razendsnel batchgewijs hernoemen met volgnummering, zoeken en vervangen en live voorbeelden.
-• Ingebouwde rijke voorbeelden: Directe inspectie van afbeeldingen, PDF's, Markdown, broncode met syntaxiskleuring, audio, video en archieven.
-• Volledige Nederlandse lokalisatie (nl): Vakkundig vertaald volgens officiële Windows-conventies voor een vertrouwde ervaring.
+• Tabbladen en gesplitste panelen
+• Detail-, raster- en kolomweergaven
+• Bestanden zoeken en mappen filteren
+• Voorbeelden van ondersteunde bestandsindelingen
+• Schijfgebruik bekijken en opschoning beoordelen
+• Meerdere bestanden hernoemen met patronen en nummering

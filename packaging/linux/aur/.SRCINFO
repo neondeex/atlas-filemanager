@@ -1,0 +1,27 @@
+pkgbase = atlas-filemanager-bin
+	pkgdesc = Modern file manager built with Rust and GPUI
+	pkgver = 0.1.6_beta.2
+	pkgrel = 1
+	url = https://atlasnative.com
+	arch = x86_64
+	license = AGPL-3.0-or-later
+	depends = glibc
+	depends = gcc-libs
+	depends = openssl
+	depends = libxkbcommon
+	depends = libxkbcommon-x11
+	depends = libxcb
+	depends = fontconfig
+	depends = wayland
+	depends = vulkan-icd-loader
+	depends = libglvnd
+	depends = ttf-dejavu
+	provides = atlas
+	provides = atlas-filemanager
+	conflicts = atlas
+	conflicts = atlas-filemanager
+	options = !strip
+	source = https://github.com/neondeex/atlas-filemanager/releases/download/v0.1.6-beta.2/atlas-0.1.6-beta.2-linux-x86_64.tar.gz
+	sha256sums = 9fb4c271da079a767f5fc4c2185aa62655588f35dcf1019fe28223bbfd4ba54a
+
+pkgname = atlas-filemanager-bin
