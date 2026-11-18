@@ -123,7 +123,7 @@ pub(crate) const COMMANDS: &[CommandMeta] = &[
     CommandMeta::remappable("files.create-folder", Some("ctrl-shift-n")),
     CommandMeta::remappable("files.create-file", Some("ctrl-alt-n")),
     CommandMeta::remappable("files.copy-path", Some("ctrl-shift-c")),
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux"))]
     CommandMeta::remappable("files.paste-shortcut", None),
     CommandMeta::remappable("files.properties", Some("alt-enter")),
     CommandMeta::remappable("files.context-menu", Some("shift-f10")),

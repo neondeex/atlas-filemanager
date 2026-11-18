@@ -2754,7 +2754,7 @@ impl App {
                 Action::OpenPropertiesFocused,
             ));
         }
-        #[cfg(windows)]
+        #[cfg(any(windows, target_os = "linux"))]
         if self
             .tab_data_for(focused)
             .is_some_and(|tab| tab.location.fs_dir().is_some())

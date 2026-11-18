@@ -256,7 +256,7 @@ pub enum Action {
     Refresh(TabId),
     CopyPathToClipboard(PathBuf),
     CopyPathsToClipboard(Vec<PathBuf>),
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux"))]
     PasteShortcutFocused,
     Undo,
     Redo,

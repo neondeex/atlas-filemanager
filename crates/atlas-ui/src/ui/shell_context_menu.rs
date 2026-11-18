@@ -171,7 +171,7 @@ enum AtlasCmd {
     Copy,
     Cut,
     Paste,
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux"))]
     PasteShortcut,
     Trash,
     DeletePerm,
@@ -201,7 +201,7 @@ impl AtlasCmd {
             Self::SelectAll => rust_i18n::t!("root_select_all").to_string(),
             Self::Cut => rust_i18n::t!("root_cut").to_string(),
             Self::Paste => rust_i18n::t!("root_paste").to_string(),
-            #[cfg(windows)]
+            #[cfg(any(windows, target_os = "linux"))]
             Self::PasteShortcut => rust_i18n::t!("cmd_paste_shortcut_title").to_string(),
             Self::Trash => rust_i18n::t!("root_move_to_trash").to_string(),
             Self::DeletePerm => rust_i18n::t!("root_delete_permanently").to_string(),
@@ -219,7 +219,7 @@ impl AtlasCmd {
             Self::Copy => Some(AtlasIcon::Copy),
             Self::Cut => Some(AtlasIcon::Scissors),
             Self::Paste => Some(AtlasIcon::Clipboard),
-            #[cfg(windows)]
+            #[cfg(any(windows, target_os = "linux"))]
             Self::PasteShortcut => Some(AtlasIcon::Copy),
             Self::Trash => Some(AtlasIcon::Trash),
             Self::DeletePerm => Some(AtlasIcon::X),
@@ -244,7 +244,7 @@ impl AtlasCmd {
             Self::Copy => "files.copy",
             Self::Cut => "files.cut",
             Self::Paste => "files.paste",
-            #[cfg(windows)]
+            #[cfg(any(windows, target_os = "linux"))]
             Self::PasteShortcut => "files.paste-shortcut",
             Self::Trash => "files.trash",
             Self::DeletePerm => "files.delete",
@@ -355,7 +355,7 @@ const ATLAS_ITEMS: &[(AtlasCmd, bool)] = &[
     (AtlasCmd::Copy, false),
     (AtlasCmd::Cut, false),
     (AtlasCmd::Paste, true),
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux"))]
     (AtlasCmd::PasteShortcut, true),
     (AtlasCmd::Trash, false),
     (AtlasCmd::DeletePerm, true),
@@ -376,7 +376,7 @@ const ATLAS_ITEMS_BACKGROUND: &[(AtlasCmd, bool)] = &[
     (AtlasCmd::NewFolder, false),
     (AtlasCmd::OpenTerminal, true),
     (AtlasCmd::Paste, false),
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux"))]
     (AtlasCmd::PasteShortcut, false),
     (AtlasCmd::Refresh, false),
     (AtlasCmd::SelectAll, false),
@@ -1670,7 +1670,7 @@ impl App {
                     self.process_actions(vec![Action::Paste { dest }]);
                 }
             }
-            #[cfg(windows)]
+            #[cfg(any(windows, target_os = "linux"))]
             AtlasCmd::PasteShortcut => self.paste_shortcuts_focused(),
             AtlasCmd::Trash | AtlasCmd::DeletePerm => {
                 if is_archive {
