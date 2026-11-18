@@ -1,3 +1,4 @@
+#![cfg(windows)]
 //! NTFS volume index turned into a `SpaceTree`. No MFT result is a cleanup candidate.
 use super::{
     policy,

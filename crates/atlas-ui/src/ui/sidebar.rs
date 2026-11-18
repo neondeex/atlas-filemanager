@@ -3890,32 +3890,28 @@ fn drive_row(
                 cx.notify();
             });
         });
-    #[cfg(target_os = "windows")]
-    {
-        row.context_menu({
-            let lens_path = drive.mount_point.clone();
-            let properties_path = drive.mount_point.clone();
-            move |menu, _window, _cx| {
-                menu.menu(
-                    rust_i18n::t!("sidebar_analyze_space"),
-                    Box::new(OpenSpaceLensForPath {
-                        path: lens_path.clone(),
-                    }),
-                )
-                .menu(
-                    rust_i18n::t!("root_properties"),
-                    Box::new(OpenPropertiesForPath {
-                        path: properties_path.clone(),
-                    }),
-                )
-            }
-        })
-        .into_any_element()
-    }
-    #[cfg(not(target_os = "windows"))]
-    {
-        row.into_any_element()
-    }
+    // On Linux this is the only way to the cleanup of `/` on a one-partition
+    // install: a mount point offers it from its folder menu, but `/` is never
+    // an item in a folder.
+    row.context_menu({
+        let lens_path = drive.mount_point.clone();
+        let properties_path = drive.mount_point;
+        move |menu, _window, _cx| {
+            menu.menu(
+                rust_i18n::t!("sidebar_analyze_space"),
+                Box::new(OpenSpaceLensForPath {
+                    path: lens_path.clone(),
+                }),
+            )
+            .menu(
+                rust_i18n::t!("root_properties"),
+                Box::new(OpenPropertiesForPath {
+                    path: properties_path.clone(),
+                }),
+            )
+        }
+    })
+    .into_any_element()
 }
 
 fn removable_device_row(

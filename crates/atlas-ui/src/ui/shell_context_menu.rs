@@ -775,10 +775,12 @@ impl App {
             ATLAS_ITEMS
         }
         .to_vec();
-        let drive_root = cfg!(windows)
-            && !state.background
+        let volume_root = !state.background
             && state.paths.len() == 1
             && atlas_core::cleanup::is_drive_root(&state.paths[0]);
+        // A Windows drive gets a drive menu; a Linux mount point is also an
+        // ordinary folder, so it keeps the folder actions and gains Disk cleanup.
+        let drive_root = cfg!(windows) && volume_root;
         if drive_root {
             atlas_items = vec![
                 (AtlasCmd::Open, false),
@@ -802,6 +804,9 @@ impl App {
             {
                 atlas_items.insert(2, (AtlasCmd::ProtectFolder, false));
             }
+        }
+        if volume_root && !drive_root {
+            atlas_items.push((AtlasCmd::DiskCleanup, false));
         }
 
         let current_view = self
@@ -1627,7 +1632,7 @@ impl App {
                 }
             }
             AtlasCmd::Open => match menu_paths.as_slice() {
-                [path] if cfg!(windows) && atlas_core::cleanup::is_drive_root(path) => {
+                [path] if atlas_core::cleanup::is_drive_root(path) => {
                     self.navigate(self.state.focused_tile, path.clone());
                 }
                 _ => self.open_cursor(),

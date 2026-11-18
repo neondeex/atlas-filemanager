@@ -9,6 +9,10 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
+/// The most candidates one plan may carry into `execute`. Larger reviews are split
+/// into several plans.
+pub const PLAN_LIMIT: usize = 2_000;
+
 fn history_dir() -> io::Result<PathBuf> {
     // Keep diagnostics and explicitly isolated Atlas profiles out of the user's
     // normal history. This affects persistence only, never the trusted Temp root.
@@ -45,7 +49,7 @@ pub fn prepare_plan_in(
         return Err(io::Error::other("cleanup_scope_changed"));
     }
     if !policy::is_drive_root(&volume_root)
-        || !temp_root.starts_with(&volume_root)
+        || !policy::on_volume(&temp_root, &volume_root)
         || candidates.is_empty()
         || candidates.len() > 20_000
     {
@@ -54,6 +58,7 @@ pub fn prepare_plan_in(
     let mut ids = HashSet::new();
     for c in &candidates {
         if !policy::valid_temp_candidate(&c.path, &temp_root)
+            || !same_filesystem_below(c, &temp_root)
             || !ids.insert((c.identity.volume, c.identity.id))
         {
             return Err(io::Error::other("cleanup_scope_changed"));
@@ -77,6 +82,21 @@ pub fn prepare_plan_in(
     serde_json::to_writer_pretty(&mut file, &plan)?;
     file.sync_all()?;
     Ok(plan)
+}
+
+/// The file and every folder from `root` down to it are on one filesystem, so a
+/// disk mounted inside a cache folder is never cleaned from the cache's volume.
+#[cfg(target_os = "linux")]
+fn same_filesystem_below(candidate: &CleanupCandidate, root: &Path) -> bool {
+    let mut below = candidate.ancestors.iter().skip_while(|a| a.path != root);
+    below
+        .next()
+        .is_some_and(|a| a.volume == candidate.identity.volume)
+        && below.all(|a| a.volume == candidate.identity.volume)
+}
+#[cfg(not(target_os = "linux"))]
+fn same_filesystem_below(_candidate: &CleanupCandidate, _root: &Path) -> bool {
+    true
 }
 
 /// Only the in-memory reviewed plan is accepted; manifests are never loaded as
@@ -126,7 +146,7 @@ fn execute_using(
         || trusted_temp != plan.temp_root
         || !plan.temp_root.starts_with(&plan.volume_root)
         || plan.candidates.is_empty()
-        || plan.candidates.len() > 2_000
+        || plan.candidates.len() > PLAN_LIMIT
     {
         return Err(io::Error::other("cleanup_scope_changed"));
     }
@@ -236,22 +256,22 @@ fn old_enough(filetime: u64) -> bool {
     })
 }
 fn delete(candidate: &CleanupCandidate) -> io::Result<u64> {
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux"))]
     {
-        atlas_win_space::cleanup::delete_verified(candidate)
+        super::verified::delete_verified(candidate)
     }
-    #[cfg(not(windows))]
+    #[cfg(not(any(windows, target_os = "linux")))]
     {
         let _ = candidate;
         Err(io::Error::other("cleanup_unavailable"))
     }
 }
 fn free(path: &Path) -> Option<u64> {
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux"))]
     {
-        atlas_win_space::cleanup::capacity(path).map(|(_, free)| free)
+        super::verified::capacity(path).map(|(_, free)| free)
     }
-    #[cfg(not(windows))]
+    #[cfg(not(any(windows, target_os = "linux")))]
     {
         let _ = path;
         None
@@ -407,7 +427,39 @@ mod tests {
         )
         .is_err());
     }
-    #[cfg(windows)]
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn a_file_below_another_mount_in_the_category_is_refused() {
+        use atlas_model::cleanup::{AncestorIdentity, FileIdentity};
+        let candidate = |devices: [u64; 4]| CleanupCandidate {
+            path: PathBuf::from("/c/sub/f"),
+            identity: FileIdentity {
+                volume: devices[3],
+                id: [1; 16],
+                bytes: 1,
+                modified: 0,
+                links: 1,
+            },
+            ancestors: ["/", "/c", "/c/sub"]
+                .iter()
+                .zip(devices)
+                .map(|(path, volume)| AncestorIdentity {
+                    path: PathBuf::from(path),
+                    volume,
+                    id: [0; 16],
+                })
+                .collect(),
+        };
+        let root = Path::new("/c");
+        assert!(same_filesystem_below(&candidate([1, 2, 2, 2]), root));
+        assert!(!same_filesystem_below(&candidate([1, 2, 3, 3]), root));
+        assert!(!same_filesystem_below(&candidate([1, 2, 2, 3]), root));
+        assert!(!same_filesystem_below(
+            &candidate([2, 2, 2, 2]),
+            Path::new("/elsewhere")
+        ));
+    }
+    #[cfg(any(windows, target_os = "linux"))]
     #[test]
     fn reviewed_fixture_is_deleted_once_and_cancelled_fixture_survives() {
         let fixture = tempfile::Builder::new()
@@ -422,7 +474,7 @@ mod tests {
             .unwrap()
             .set_modified(SystemTime::now() - Duration::from_secs(8 * 24 * 3600))
             .unwrap();
-        let candidate = atlas_win_space::cleanup::inspect(&file).unwrap();
+        let candidate = super::super::verified::inspect(&file).unwrap();
         let temp_root = fixture.path().to_owned();
         let plan = CleanupPlan {
             version: 1,
@@ -458,7 +510,7 @@ mod tests {
             .join(format!("{}.report.json", fresh.id))
             .is_file());
     }
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux"))]
     #[test]
     fn fresh_or_changed_files_are_reported_without_deletion() {
         let fixture = tempfile::Builder::new()
@@ -467,7 +519,7 @@ mod tests {
             .unwrap();
         let file = fixture.path().join("keep.tmp");
         fs::write(&file, b"keep").unwrap();
-        let candidate = atlas_win_space::cleanup::inspect(&file).unwrap();
+        let candidate = super::super::verified::inspect(&file).unwrap();
         let temp_root = fixture.path().to_owned();
         let plan = CleanupPlan {
             version: 1,

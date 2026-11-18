@@ -263,9 +263,13 @@ impl SpaceTree {
             entries,
             ..Default::default()
         };
+        #[cfg(target_os = "linux")]
+        {
+            snapshot.capacity = super::verified::capacity(path);
+        }
         #[cfg(windows)]
         {
-            snapshot.capacity = atlas_win_space::cleanup::capacity(path);
+            snapshot.capacity = super::verified::capacity(path);
             snapshot.fast_scan_available = self
                 .root
                 .ancestors()

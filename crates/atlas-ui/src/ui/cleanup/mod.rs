@@ -265,7 +265,7 @@ impl CleanupPanel {
                 let roots: Vec<_> = c
                     .roots
                     .into_iter()
-                    .filter(|r| r.starts_with(&self.volume))
+                    .filter(|r| atlas_core::cleanup::on_volume(r, &self.volume))
                     .collect();
                 (!roots.is_empty()).then(|| CatState {
                     key: c.key,
@@ -369,29 +369,35 @@ impl CleanupPanel {
             let outcome = cx
                 .background_executor()
                 .spawn(async move {
-                    jobs.into_iter()
-                        .filter_map(|(root, paths)| {
-                            let candidates = atlas_core::cleanup::inspect_candidates(&paths);
-                            (!candidates.is_empty()).then(|| {
-                                atlas_core::cleanup::prepare_plan_in(
-                                    volume.clone(),
-                                    root,
-                                    candidates,
-                                )
-                            })
-                        })
-                        .collect::<std::io::Result<Vec<_>>>()
+                    // One plan per PLAN_LIMIT files, so a large developer cache is
+                    // cleaned in parts; a root that fails does not stop the others.
+                    let mut plans = Vec::new();
+                    let mut error = None;
+                    for (root, paths) in jobs {
+                        let candidates = atlas_core::cleanup::inspect_candidates(&paths);
+                        for part in candidates.chunks(atlas_core::cleanup::PLAN_LIMIT) {
+                            match atlas_core::cleanup::prepare_plan_in(
+                                volume.clone(),
+                                root.clone(),
+                                part.to_vec(),
+                            ) {
+                                Ok(plan) => plans.push(plan),
+                                Err(e) => error = error.or_else(|| Some(e.to_string())),
+                            }
+                        }
+                    }
+                    (plans, error)
                 })
                 .await;
             let _ = this.update(cx, |panel, cx| {
                 panel.preparing = false;
-                match outcome {
-                    Ok(mut plans) if !plans.is_empty() => {
-                        panel.review = Some(plans.remove(0));
-                        panel.plans = plans;
-                    }
-                    Ok(_) => panel.error = Some("cleanup_unavailable".into()),
-                    Err(e) => panel.error = Some(e.to_string()),
+                let (mut plans, error) = outcome;
+                if plans.is_empty() {
+                    panel.error = Some(error.unwrap_or_else(|| "cleanup_unavailable".into()));
+                } else {
+                    panel.error = error;
+                    panel.review = Some(plans.remove(0));
+                    panel.plans = plans;
                 }
                 cx.notify();
             });
@@ -757,13 +763,25 @@ impl CleanupPanel {
             let mut merged: Option<CleanupReport> = None;
             let mut base = 0usize;
             for plan in &plans {
-                if merged.is_some() && cancel.load(Ordering::Acquire) {
+                if let Some(all) = merged.as_mut().filter(|_| cancel.load(Ordering::Acquire)) {
+                    // Plans that never ran count as cancelled, not as a complete cleanup.
+                    all.cancelled = true;
                     break;
                 }
                 let sender = sender.clone();
-                let report = atlas_core::cleanup::execute(plan, &cancel, |done, _| {
+                let report = match atlas_core::cleanup::execute(plan, &cancel, |done, _| {
                     let _ = sender.try_send((base + done, total));
-                })?;
+                }) {
+                    Ok(report) => report,
+                    // A later plan that cannot start keeps the results of the earlier ones.
+                    Err(e) => match merged.as_mut() {
+                        Some(all) => {
+                            all.error = all.error.take().or_else(|| Some(e.to_string()));
+                            break;
+                        }
+                        None => return Err(e),
+                    },
+                };
                 base += plan.candidates.len();
                 merged = Some(match merged {
                     None => report,
