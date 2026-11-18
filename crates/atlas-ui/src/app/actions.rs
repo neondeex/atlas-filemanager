@@ -253,57 +253,50 @@ impl App {
                         let _ = tx.send(atlas_model::app_state::BgResult::LicenseChanged(result));
                     });
                 }
+                #[cfg(windows)]
                 Action::OpenCrashReports => {
-                    #[cfg(windows)]
-                    {
-                        let newest = atlas_win_space::crash::previous_crash()
-                            .and_then(|crash| crash.reports.first().cloned());
-                        match newest {
-                            Some(report) => {
-                                let _ = std::process::Command::new("explorer")
-                                    .arg(format!("/select,{}", report.display()))
-                                    .spawn();
-                            }
-                            None => {
-                                if let Ok(dir) = atlas_win_space::crash::crash_directory() {
-                                    let _ = std::fs::create_dir_all(&dir);
-                                    let _ = open::that(dir);
-                                }
+                    let newest = atlas_win_space::crash::previous_crash()
+                        .and_then(|crash| crash.reports.first().cloned());
+                    match newest {
+                        Some(report) => {
+                            let _ = std::process::Command::new("explorer")
+                                .arg(format!("/select,{}", report.display()))
+                                .spawn();
+                        }
+                        None => {
+                            if let Ok(dir) = atlas_win_space::crash::crash_directory() {
+                                let _ = std::fs::create_dir_all(&dir);
+                                let _ = open::that(dir);
                             }
                         }
                     }
                 }
+                #[cfg(windows)]
                 Action::SendCrashReport => {
-                    #[cfg(windows)]
-                    {
-                        let Some(crash) = atlas_win_space::crash::previous_crash() else {
-                            self.toast_info(rust_i18n::t!("crash_report_none").into_owned());
-                            continue;
-                        };
-                        if std::mem::replace(&mut self.crash_report_sent, true) {
-                            self.toast_info(
-                                rust_i18n::t!("crash_report_already_sent").into_owned(),
-                            );
-                            continue;
-                        }
-                        self.toast_info(rust_i18n::t!("crash_report_sending").into_owned());
-                        let tx = self.tx.clone();
-                        self.rt.spawn(async move {
-                            let result = atlas_core::crash_report::send(
-                                &crash.reports,
-                                &crash.version,
-                                crash.summary.as_deref(),
-                            )
-                            .await
-                            .map(|_| rust_i18n::t!("crash_report_sent").into_owned())
-                            .map_err(|error| {
-                                tracing::warn!(%error, "crash report upload failed");
-                                rust_i18n::t!("crash_report_failed").into_owned()
-                            });
-                            let _ =
-                                tx.send(atlas_model::app_state::BgResult::CrashReportSent(result));
-                        });
+                    let Some(crash) = atlas_win_space::crash::previous_crash() else {
+                        self.toast_info(rust_i18n::t!("crash_report_none").into_owned());
+                        continue;
+                    };
+                    if std::mem::replace(&mut self.crash_report_sent, true) {
+                        self.toast_info(rust_i18n::t!("crash_report_already_sent").into_owned());
+                        continue;
                     }
+                    self.toast_info(rust_i18n::t!("crash_report_sending").into_owned());
+                    let tx = self.tx.clone();
+                    self.rt.spawn(async move {
+                        let result = atlas_core::crash_report::send(
+                            &crash.reports,
+                            &crash.version,
+                            crash.summary.as_deref(),
+                        )
+                        .await
+                        .map(|_| rust_i18n::t!("crash_report_sent").into_owned())
+                        .map_err(|error| {
+                            tracing::warn!(%error, "crash report upload failed");
+                            rust_i18n::t!("crash_report_failed").into_owned()
+                        });
+                        let _ = tx.send(atlas_model::app_state::BgResult::CrashReportSent(result));
+                    });
                 }
                 Action::GetPremium => {
                     // Regional-price markets buy the Store add-on; the Store listing

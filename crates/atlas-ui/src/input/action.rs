@@ -229,8 +229,10 @@ pub enum Action {
     /// Release this device's license activation so the key can move to another PC.
     DeactivateLicense,
     /// Reveal the crash-report folder (newest report selected when there is one).
+    #[cfg(windows)]
     OpenCrashReports,
     /// Upload the previous session's crash report (text only, paths redacted).
+    #[cfg(windows)]
     SendCrashReport,
     /// Open the Premium purchase options.
     GetPremium,

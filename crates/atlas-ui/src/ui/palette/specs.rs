@@ -2943,6 +2943,8 @@ impl App {
                 AtlasIcon::Lock,
                 Action::DeactivateLicense,
             ),
+            // Crash reports are collected only on Windows (atlas-win-space).
+            #[cfg(windows)]
             CommandDef::new(
                 "sys.crash-reports",
                 rust_i18n::t!("cmd_sys_crash_reports_title"),
@@ -2950,6 +2952,7 @@ impl App {
                 AtlasIcon::Lifebuoy,
                 Action::OpenCrashReports,
             ),
+            #[cfg(windows)]
             CommandDef::new(
                 "sys.send-crash-report",
                 rust_i18n::t!("cmd_sys_send_crash_report_title"),
