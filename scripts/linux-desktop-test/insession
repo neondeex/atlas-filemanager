@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Run a command inside the logged-in Wayland desktop session (from ssh).
+set -euo pipefail
+XDG_RUNTIME_DIR=/run/user/$(id -u)
+export XDG_RUNTIME_DIR
+sock=
+for s in "$XDG_RUNTIME_DIR"/wayland-[0-9]*; do
+  [[ -S $s && ${s##*/} =~ ^wayland-[0-9]+$ ]] && { sock=${s##*/}; break; }
+done
+export WAYLAND_DISPLAY=${sock:?no Wayland session}
+export DBUS_SESSION_BUS_ADDRESS=unix:path=$XDG_RUNTIME_DIR/bus
+for s in "$XDG_RUNTIME_DIR"/sway-ipc.*; do [[ -S $s ]] && { export SWAYSOCK=$s; break; }; done
+unset DISPLAY
+exec "$@"

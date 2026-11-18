@@ -1,0 +1,6 @@
+# Most commands here are strings run in the VM over ssh: $ and ~ in them must expand in the guest, not here.
+disable=SC2016,SC2029,SC2088
+# `cond && ok || bad`: ok only logs; if even logging fails, the harness is broken anyway.
+disable=SC2015
+# /etc/os-release is read inside the VM.
+disable=SC1091
