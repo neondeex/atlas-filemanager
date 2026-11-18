@@ -424,7 +424,8 @@ pub struct App {
     /// Details-view column widths, shared across all panes.
     pub(crate) col_widths: ColWidths,
     pub(crate) typed_selection: Option<(atlas_model::pane::TabId, String, Instant)>,
-    #[cfg(windows)]
+    /// Windows: Win+E opens Atlas. Linux: Atlas is the default file manager.
+    #[cfg(any(windows, target_os = "linux"))]
     pub(crate) win_e_enabled: bool,
     /// User-facing order for Details metadata columns. Name stays fixed first.
     pub(crate) details_column_order: [DetailsColumn; 3],

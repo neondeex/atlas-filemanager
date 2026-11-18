@@ -1,3 +1,5 @@
+#[cfg(target_os = "linux")]
+pub mod default_file_manager;
 pub mod desktop_apps;
 pub mod dir_stats;
 pub mod index;

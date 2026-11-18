@@ -1507,6 +1507,34 @@ pub(crate) static SETTINGS: LazyLock<Vec<SettingDef>> = LazyLock::new(|| {
             },
         },
     );
+    #[cfg(target_os = "linux")]
+    list.insert(
+        2,
+        SettingDef {
+            id: "default-file-manager",
+            category: Category::General,
+            icon: AtlasIcon::Folder,
+            title: "settings_default_fm",
+            desc: Some("sp_default_fm_desc"),
+            keywords: "default file manager folders open predeterminado nautilus dolphin xdg mime",
+            control: Control::Toggle {
+                get: |app| app.win_e_enabled,
+                set: |app, on| {
+                    if app.win_e_enabled == on {
+                        return;
+                    }
+                    match atlas_core::fs::default_file_manager::set_default(on) {
+                        Ok(()) => app.win_e_enabled = on,
+                        Err(error) => app.toast_error(
+                            rust_i18n::t!("settings_default_fm_error", error = error.to_string())
+                                .into_owned(),
+                        ),
+                    }
+                },
+                default: None,
+            },
+        },
+    );
     list
 });
 

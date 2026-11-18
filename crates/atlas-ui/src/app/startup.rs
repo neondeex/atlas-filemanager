@@ -824,6 +824,8 @@ impl App {
             typed_selection: None,
             #[cfg(windows)]
             win_e_enabled: atlas_win_space::integration::win_e_enabled().unwrap_or(false),
+            #[cfg(target_os = "linux")]
+            win_e_enabled: atlas_core::fs::default_file_manager::is_default(),
             preview_delay: Default::default(),
             details_column_order: details_prefs.order,
             col_resize: None,
