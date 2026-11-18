@@ -740,7 +740,7 @@ cmd_nav_goto_desc: "Fuzzy search for files and folders from the current location
 cmd_nav_refresh_title: "Refresh"
 cmd_nav_refresh_desc: "Reloads the current folder's contents."
 cmd_nav_recycle_bin_title: "Open Recycle Bin"
-cmd_nav_recycle_bin_desc: "Opens the Windows Recycle Bin."
+cmd_nav_recycle_bin_desc: "Opens the Recycle Bin."
 
 # Commands - Selection
 cmd_selection_previous_title: "Select Previous"

@@ -53,7 +53,7 @@ pub(crate) const COMMANDS: &[CommandMeta] = &[
     CommandMeta::remappable("nav.parent", Some("alt-up")),
     CommandMeta::remappable("nav.goto", Some("ctrl-k")),
     CommandMeta::remappable("nav.refresh", Some("f5")),
-    #[cfg(target_os = "windows")]
+    #[cfg(any(target_os = "windows", target_os = "linux"))]
     CommandMeta::remappable("nav.recycle-bin", None),
     CommandMeta::remappable("view.hidden", Some("ctrl-.")),
     CommandMeta::remappable("view.vim-mode", None),
@@ -180,5 +180,12 @@ mod tests {
     fn vim_mode_command_is_registered_and_remappable() {
         assert_eq!(default_command_shortcut("view.vim-mode"), None);
         assert!(command_remappable("view.vim-mode"));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn recycle_bin_command_can_be_remapped_on_linux() {
+        assert_eq!(default_command_shortcut("nav.recycle-bin"), None);
+        assert!(command_remappable("nav.recycle-bin"));
     }
 }

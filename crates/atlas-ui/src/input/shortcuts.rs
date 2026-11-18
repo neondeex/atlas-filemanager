@@ -512,7 +512,7 @@ impl App {
             "nav.parent" => Some(Action::NavigateUp(focused)),
             "nav.goto" => Some(Action::OpenGotoBar),
             "nav.refresh" => Some(Action::Refresh(focused)),
-            #[cfg(target_os = "windows")]
+            #[cfg(any(target_os = "windows", target_os = "linux"))]
             "nav.recycle-bin" => Some(Action::NavigateLocation {
                 tab: focused,
                 location: atlas_model::location::Location::RecycleBin,
