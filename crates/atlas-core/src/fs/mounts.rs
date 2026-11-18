@@ -68,7 +68,7 @@ pub fn list_drives() -> Vec<DriveInfo> {
 
 fn list_drives_internal() -> Vec<DriveInfo> {
     let disks = sysinfo::Disks::new_with_refreshed_list();
-    let mut drives: Vec<DriveInfo> = disks
+    let mut drives: Vec<(DriveInfo, String)> = disks
         .list()
         .iter()
         .map(|disk| {
@@ -84,19 +84,81 @@ fn list_drives_internal() -> Vec<DriveInfo> {
             };
             let is_system = is_system_mount(&mount_point);
             let is_removable = disk.is_removable();
-            DriveInfo {
+            let drive = DriveInfo {
                 label,
                 mount_point,
                 total_bytes: disk.total_space(),
                 available_bytes: disk.available_space(),
                 is_removable,
                 is_system,
-            }
+            };
+            (drive, disk.name().to_string_lossy().into_owned())
         })
         .collect();
-    drives.sort_by(|a, b| a.mount_point.cmp(&b.mount_point));
-    drives.dedup_by(|a, b| a.mount_point == b.mount_point);
+    drives.sort_by(|a, b| a.0.mount_point.cmp(&b.0.mount_point));
+    drives.dedup_by(|a, b| a.0.mount_point == b.0.mount_point);
+    if cfg!(target_os = "linux") {
+        drives = user_visible_linux_mounts(drives);
+    }
+    drives.into_iter().map(|(drive, _)| drive).collect()
+}
+
+/// Mount points under these hold the operating system, not user files; GIO counts
+/// most of them as system mounts too. `/etc` and `/sysroot` are bind mounts of the
+/// root disk on Fedora Atomic.
+const LINUX_SYSTEM_MOUNT_ROOTS: &[&str] = &[
+    "/boot", "/efi", "/etc", "/sysroot", "/usr", "/var", "/tmp", "/snap",
+];
+
+/// Fedora Atomic keeps `/home`, `/mnt`, `/opt` and `/srv` here, so a home partition or
+/// a second disk is mounted under `/var`.
+const LINUX_USER_MOUNT_ROOTS_IN_VAR: &[&str] = &["/var/home", "/var/mnt", "/var/opt", "/var/srv"];
+
+fn is_linux_system_mount(path: &std::path::Path) -> bool {
+    LINUX_SYSTEM_MOUNT_ROOTS
+        .iter()
+        .any(|root| path.starts_with(root))
+        && !LINUX_USER_MOUNT_ROOTS_IN_VAR
+            .iter()
+            .any(|root| path.starts_with(root))
+}
+
+/// Linux lists every mount of a disk: Fedora's btrfs layout mounts one partition at `/`
+/// and `/home` (its cloud image also at `/var` and `/boot`), plus the EFI partition at
+/// `/boot/efi`. Drop system mounts, then keep one entry per block device, the mount
+/// point nearest the root (fewest components, then shortest, so `/` wins over `/home`),
+/// so the sidebar shows disks the way Windows shows drive letters.
+/// Fedora Atomic's `/` is composefs, which reports the image's size, so its root disk
+/// shows as `/var/home`, the one user mount it has.
+/// `drives` must be sorted by mount point; the second field is the mount source.
+fn user_visible_linux_mounts(drives: Vec<(DriveInfo, String)>) -> Vec<(DriveInfo, String)> {
+    let drives: Vec<_> = drives
+        .into_iter()
+        .filter(|(drive, _)| !is_linux_system_mount(&drive.mount_point))
+        .collect();
+    let nearness = |path: &std::path::Path| (path.components().count(), path.as_os_str().len());
+    let mut nearest = std::collections::HashMap::new();
+    for (drive, device) in drives
+        .iter()
+        .filter(|(_, device)| device.starts_with("/dev/"))
+    {
+        let best = nearest.entry(device.as_str()).or_insert(&drive.mount_point);
+        if nearness(&drive.mount_point) < nearness(best) {
+            *best = &drive.mount_point;
+        }
+    }
+    let keep: Vec<bool> = drives
+        .iter()
+        .map(|(drive, device)| {
+            !device.starts_with("/dev/")
+                || nearest.get(device.as_str()) == Some(&&drive.mount_point)
+        })
+        .collect();
     drives
+        .into_iter()
+        .zip(keep)
+        .filter_map(|(drive, keep)| keep.then_some(drive))
+        .collect()
 }
 
 #[inline]
@@ -173,4 +235,125 @@ fn read_mounts_internal() -> Vec<PathBuf> {
     mounts.sort();
     mounts.dedup();
     mounts
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn mount(path: &str, device: &str) -> (DriveInfo, String) {
+        let drive = DriveInfo {
+            label: device.to_string(),
+            mount_point: PathBuf::from(path),
+            total_bytes: 1,
+            available_bytes: 1,
+            is_removable: false,
+            is_system: path == "/",
+        };
+        (drive, device.to_string())
+    }
+
+    fn visible(mounts: &[(&str, &str)]) -> Vec<String> {
+        let mut drives: Vec<_> = mounts.iter().map(|(p, d)| mount(p, d)).collect();
+        drives.sort_by(|a, b| a.0.mount_point.cmp(&b.0.mount_point));
+        user_visible_linux_mounts(drives)
+            .into_iter()
+            .map(|(drive, _)| drive.mount_point.to_string_lossy().into_owned())
+            .collect()
+    }
+
+    #[test]
+    fn fedora_btrfs_subvolumes_show_one_drive() {
+        let fedora = [
+            ("/", "/dev/vda3"),
+            ("/home", "/dev/vda3"),
+            ("/var", "/dev/vda3"),
+            ("/boot", "/dev/vda3"),
+            ("/boot/efi", "/dev/vda2"),
+        ];
+        assert_eq!(visible(&fedora), ["/"]);
+    }
+
+    #[test]
+    fn separate_disks_and_home_partition_stay() {
+        let mounts = [
+            ("/", "/dev/nvme0n1p2"),
+            ("/boot/efi", "/dev/nvme0n1p1"),
+            ("/home", "/dev/nvme0n1p3"),
+            ("/mnt/data", "/dev/sdb1"),
+            ("/var/lib/docker/overlay2/x/merged", "overlay"),
+        ];
+        assert_eq!(visible(&mounts), ["/", "/home", "/mnt/data"]);
+    }
+
+    #[test]
+    fn the_mount_nearest_the_root_stands_for_its_disk() {
+        let mounts = [
+            ("/", "/dev/sda1"),
+            ("/home/me/shared", "/dev/sdb1"),
+            ("/mnt/z", "/dev/sdb1"),
+            ("/media/usb", "/dev/sdc1"),
+            ("/mnt/usb-bind", "/dev/sdc1"),
+        ];
+        assert_eq!(visible(&mounts), ["/", "/media/usb", "/mnt/z"]);
+    }
+
+    #[test]
+    fn non_device_mounts_are_not_merged() {
+        let mounts = [
+            ("/", "/dev/sda1"),
+            ("/mnt/a", "server:/a"),
+            ("/mnt/b", "server:/a"),
+        ];
+        assert_eq!(visible(&mounts), ["/", "/mnt/a", "/mnt/b"]);
+    }
+
+    #[test]
+    fn a_disk_with_a_system_mount_keeps_its_user_mount() {
+        let mounts = [
+            ("/", "/dev/sda1"),
+            ("/home", "/dev/sdb1"),
+            ("/var", "/dev/sdb1"),
+            ("/home/me/Games", "/dev/sdc1"),
+            ("/var/lib/docker", "/dev/sdc1"),
+            ("/run/media/me/USB", "/dev/sdd1"),
+            ("/tmp/x", "/dev/sdd1"),
+        ];
+        assert_eq!(
+            visible(&mounts),
+            ["/", "/home", "/home/me/Games", "/run/media/me/USB"]
+        );
+    }
+
+    #[test]
+    fn fedora_atomic_default_layout_shows_its_disk_as_home() {
+        let mounts = [
+            ("/", "composefs"),
+            ("/boot", "/dev/nvme0n1p2"),
+            ("/boot/efi", "/dev/nvme0n1p1"),
+            ("/etc", "/dev/nvme0n1p3"),
+            ("/var", "/dev/nvme0n1p3"),
+            ("/var/home", "/dev/nvme0n1p3"),
+        ];
+        assert_eq!(visible(&mounts), ["/", "/var/home"]);
+    }
+
+    #[test]
+    fn fedora_atomic_home_and_mnt_under_var_stay() {
+        let mounts = [
+            ("/", "composefs"),
+            ("/boot", "/dev/nvme0n1p2"),
+            ("/boot/efi", "/dev/nvme0n1p1"),
+            ("/etc", "/dev/nvme0n1p3"),
+            ("/sysroot", "/dev/nvme0n1p3"),
+            ("/var", "/dev/nvme0n1p3"),
+            ("/var/home", "/dev/nvme0n1p4"),
+            ("/var/mnt/data", "/dev/sdb1"),
+            ("/run/media/me/USB", "/dev/sdc1"),
+        ];
+        assert_eq!(
+            visible(&mounts),
+            ["/", "/run/media/me/USB", "/var/home", "/var/mnt/data"]
+        );
+    }
 }
