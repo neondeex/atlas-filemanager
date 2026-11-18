@@ -131,6 +131,41 @@ def write_checksums(output):
         (output / (path.name + ".sha256")).write_text(f"{sha256(path)}  {path.name}\n")
 
 
+def has_debug_info(binary):
+    sections = subprocess.run(["readelf", "-S", "-W", str(binary)], check=True,
+                              capture_output=True, text=True).stdout
+    return ".debug_info" in sections
+
+
+def split_debug_info(binaries, data_dir):
+    """Return stripped copies of `binaries`; their DWARF goes to data_dir/debug.
+
+    The release profile keeps line tables for crash stacks. On Windows they go to a
+    separate PDB; on Linux they stay inside the ELF and made /usr/bin/atlas four times
+    larger. The symbol table stays, so panic backtraces still name functions, and each
+    copy gets a .gnu_debuglink, so gdb finds NAME.debug next to it or at
+    /usr/lib/debug/usr/bin/NAME.debug. A binary without DWARF (a repacked candidate
+    that was already split) is copied as is.
+    """
+    stripped_dir, debug_dir = data_dir / "stripped", data_dir / "debug"
+    for directory in (stripped_dir, debug_dir):
+        shutil.rmtree(directory, ignore_errors=True)
+        directory.mkdir(parents=True)
+    stripped = []
+    for binary in binaries:
+        target = stripped_dir / binary.name
+        if not has_debug_info(binary):
+            shutil.copy2(binary, target)
+            stripped.append(target)
+            continue
+        debug = debug_dir / (binary.name + ".debug")
+        run("objcopy", "--only-keep-debug", "--compress-debug-sections", binary, debug)
+        run("objcopy", "--strip-debug", f"--add-gnu-debuglink={debug}", binary, target)
+        shutil.copymode(binary, target)
+        stripped.append(target)
+    return stripped
+
+
 def packages(version, repo, binary, output, tool_dir, data_dir):
     if output.exists() and any(output.iterdir()):
         raise ValueError("Package output must be empty; use a fresh --output directory")
@@ -150,6 +185,7 @@ def packages(version, repo, binary, output, tool_dir, data_dir):
     for companion in companions:
         if not companion.is_file():
             raise FileNotFoundError(f"Missing built companion: {companion}")
+    binary, *companions = split_debug_info([binary, *companions], data_dir)
     env = dict(os.environ, ATLAS_VERSION=version, ATLAS_BINARY=str(binary),
                ATLAS_BINARY_DIR=str(binary.parent), ATLAS_PACKAGE_DATA=str(data_dir))
     # nFPM expands some metadata fields, but not content source paths.

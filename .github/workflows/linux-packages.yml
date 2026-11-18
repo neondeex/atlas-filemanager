@@ -88,6 +88,13 @@ jobs:
           name: atlas-linux-x86_64
           path: target/linux-dist/*
           if-no-files-found: error
+      # Symbols split from the packaged binaries; never shipped, kept for crash stacks.
+      # The name must not match the release job's `atlas-linux-*` download.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: debug-symbols-linux-x86_64
+          path: target/linux-release/debug/*.debug
+          if-no-files-found: error
 
   native-test:
     name: Install and open on ${{ matrix.name }}
