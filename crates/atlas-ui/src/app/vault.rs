@@ -53,7 +53,7 @@ pub(crate) enum PrivatePreview {
 }
 
 enum Outcome {
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux"))]
     Mounted(
         atlas_core::vault::mount::Mounted,
         Option<PathBuf>,
@@ -72,7 +72,7 @@ impl App {
         if self.vault.as_ref().is_some_and(|d| d.busy) {
             return;
         }
-        #[cfg(windows)]
+        #[cfg(any(windows, target_os = "linux"))]
         if phase == Phase::Unlock {
             if let Some(mounted) = &self.vault_mount {
                 if mounted.root() == path {
@@ -368,7 +368,7 @@ impl App {
     }
 
     pub(crate) fn poll_vault(&mut self) -> bool {
-        #[cfg(windows)]
+        #[cfg(any(windows, target_os = "linux"))]
         if self.vault_mount.as_ref().is_some_and(|mount| {
             mount.idle_for() >= Duration::from_secs(300) && !mount.has_open_files()
         }) {
@@ -398,7 +398,7 @@ impl App {
         d.busy = false;
         d.last_activity = Instant::now();
         match result {
-            #[cfg(windows)]
+            #[cfg(any(windows, target_os = "linux"))]
             Outcome::Mounted(mounted, source, notice) => {
                 if let Some(source) = source {
                     self.purge_private_history(&source);
@@ -469,7 +469,7 @@ impl App {
 
     /// Revoke the OS mount before profile snapshots, then discard all private UI state.
     pub(crate) fn close_native_vault(&mut self, force: bool) -> bool {
-        #[cfg(windows)]
+        #[cfg(any(windows, target_os = "linux"))]
         {
             if self.vault_mount.is_some() && !force && !self.state.ops.active_ops.is_empty() {
                 self.toast_error(rust_i18n::t!("vault_files_open").to_string());
@@ -488,7 +488,7 @@ impl App {
                 let parent = mounted
                     .root()
                     .parent()
-                    .unwrap_or(Path::new("C:\\"))
+                    .unwrap_or_else(|| Path::new(if cfg!(windows) { "C:\\" } else { "/" }))
                     .to_path_buf();
                 self.watchers
                     .retain(|_, watcher| !watcher.watched_path.starts_with(&path));
@@ -508,19 +508,19 @@ impl App {
                 self.refresh_all_vault_listings();
             }
         }
-        #[cfg(not(windows))]
+        #[cfg(not(any(windows, target_os = "linux")))]
         let _ = force;
         true
     }
 
     pub(crate) fn owns_native_vault_path(&self, path: &Path) -> bool {
-        #[cfg(windows)]
+        #[cfg(any(windows, target_os = "linux"))]
         {
             self.vault_mount
                 .as_ref()
                 .is_some_and(|mount| path.starts_with(mount.path()))
         }
-        #[cfg(not(windows))]
+        #[cfg(not(any(windows, target_os = "linux")))]
         {
             let _ = path;
             false
@@ -528,7 +528,7 @@ impl App {
     }
 
     pub(crate) fn manage_native_vault(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        #[cfg(windows)]
+        #[cfg(any(windows, target_os = "linux"))]
         {
             if self
                 .vault_mount
@@ -542,7 +542,10 @@ impl App {
                 let root = mount.root().to_path_buf();
                 let path = mount.path().to_path_buf();
                 let session = mount.into_session();
-                let parent = root.parent().unwrap_or(Path::new("C:\\")).to_path_buf();
+                let parent = root
+                    .parent()
+                    .unwrap_or_else(|| Path::new(if cfg!(windows) { "C:\\" } else { "/" }))
+                    .to_path_buf();
                 for (_, tile) in self.state.pane_tree.tiles.iter_mut() {
                     if let atlas_model::layout_tree::Tile::Pane(tab) = tile {
                         if tab.location.display_path().starts_with(&path) {
@@ -559,7 +562,7 @@ impl App {
                 self.vault_phase(Phase::Manage, window, cx);
             }
         }
-        #[cfg(not(windows))]
+        #[cfg(not(any(windows, target_os = "linux")))]
         let _ = (window, cx);
     }
 
@@ -848,14 +851,14 @@ impl App {
 
 /// Decode in memory with bounded dimensions/allocation; no paths, temp files, or thumbnail cache.
 fn mount_ready(session: Session, source: Option<PathBuf>, notice: Option<String>) -> Outcome {
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux"))]
     {
         match atlas_core::vault::mount::Mounted::start(session) {
             Ok(mount) => Outcome::Mounted(mount, source, notice),
             Err((session, error)) => Outcome::MountUnavailable(session, source, error),
         }
     }
-    #[cfg(not(windows))]
+    #[cfg(not(any(windows, target_os = "linux")))]
     {
         let _ = notice;
         Outcome::MountUnavailable(session, source, "vault_mount_unavailable".into())

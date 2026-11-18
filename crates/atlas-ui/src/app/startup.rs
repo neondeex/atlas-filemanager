@@ -771,7 +771,7 @@ impl App {
             converter: None,
             cleanup_panel: None,
             vault: None,
-            #[cfg(windows)]
+            #[cfg(any(windows, target_os = "linux"))]
             vault_mount: None,
             ctx_menu: None,
             ctx_menu_seq: 0,

@@ -53,6 +53,9 @@ overrides:
       - libvulkan1
       - libegl1
       - fonts-dejavu-core
+    # Private folders open as a FUSE mount through fusermount3.
+    recommends:
+      - fuse3
   rpm:
     depends:
       - libc.so.6(GLIBC_2.35)(64bit)
@@ -66,6 +69,8 @@ overrides:
       - libwayland-client.so.0()(64bit)
       - libvulkan.so.1()(64bit)
       - libEGL.so.1()(64bit)
+    recommends:
+      - fuse3
   archlinux:
     depends:
       - glibc

@@ -31,6 +31,10 @@ pub const PREFIX: &str = ".atlas-vault-";
 pub mod live;
 #[cfg(windows)]
 pub mod mount;
+#[cfg(target_os = "linux")]
+pub mod mount_linux;
+#[cfg(target_os = "linux")]
+pub use mount_linux as mount;
 mod mutable;
 mod names;
 const HEADER: &str = "vault.json";
@@ -93,6 +97,15 @@ pub struct Entry {
     blocks: Option<Vec<Option<String>>>,
     #[serde(default)]
     attributes: u32,
+}
+
+impl Entry {
+    pub const fn modified(&self) -> u64 {
+        self.modified
+    }
+    pub const fn attributes(&self) -> u32 {
+        self.attributes
+    }
 }
 
 #[derive(Serialize, Deserialize, Zeroize, ZeroizeOnDrop)]
@@ -612,6 +625,13 @@ pub fn unlock(root: &Path, password: &str, profile: &str) -> Result<Session> {
         "vault_access_denied"
     );
     let guard = lock(root)?;
+    // Read again under the lock: another session may have written the envelope since,
+    // and a stale manifest would let `collect_orphans` delete its new blocks.
+    let envelope = read_envelope(root)?;
+    ensure!(
+        envelope.profiles.iter().any(|id| id == profile),
+        "vault_access_denied"
+    );
     let derived = derive(password, &envelope.salt)?;
     let unwrapped = open(&derived, &envelope.wrapped_key, &envelope.aad()?)
         .map_err(|_| anyhow::anyhow!("vault_wrong_password"))?;

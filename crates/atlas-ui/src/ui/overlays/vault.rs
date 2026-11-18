@@ -22,7 +22,7 @@ use std::{sync::atomic::Ordering, time::Instant};
 impl App {
     #[inline(never)]
     pub(crate) fn render_private_session_bar(&self, cx: &mut Context<Self>) -> Option<AnyElement> {
-        #[cfg(windows)]
+        #[cfg(any(windows, target_os = "linux"))]
         {
             let mount = self.vault_mount.as_ref()?;
             Some(
@@ -66,7 +66,7 @@ impl App {
                     .into_any_element(),
             )
         }
-        #[cfg(not(windows))]
+        #[cfg(not(any(windows, target_os = "linux")))]
         {
             let _ = cx;
             None

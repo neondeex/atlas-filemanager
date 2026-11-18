@@ -92,6 +92,12 @@ atlas-win-space = { path = "../atlas-win-space" }
 winfsp = { version = "0.13.2", default-features = false, features = ["delayload"] }
 windows = { version = "0.61", features = ["Win32_Foundation", "Win32_Storage_FileSystem", "Win32_Globalization", "Win32_UI_Shell", "Services_Store", "Foundation_Collections"] }
 
+[target.'cfg(target_os = "linux")'.dependencies]
+# Pure-Rust mounting through fusermount3 (package fuse3); no libfuse headers to build.
+# abi-7-10 lets the kernel send writes up to 128 KiB (FUSE_BIG_WRITES) instead of 4 KiB each.
+fuser = { version = "0.15", default-features = false, features = ["abi-7-10"] }
+libc = "0.2"
+
 [dev-dependencies]
 
 [target.'cfg(unix)'.dependencies]

@@ -348,7 +348,7 @@ impl App {
     }
 
     pub(crate) fn navigate_up(&mut self, tab_id: TileId) {
-        #[cfg(windows)]
+        #[cfg(any(windows, target_os = "linux"))]
         if let Some(mount) = &self.vault_mount {
             if self
                 .tab_data_for(tab_id)

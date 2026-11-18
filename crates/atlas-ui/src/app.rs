@@ -33,7 +33,7 @@ pub(crate) mod vault;
 
 pub struct App {
     pub(crate) vault: Option<vault::Dialog>,
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux"))]
     pub(crate) vault_mount: Option<atlas_core::vault::mount::Mounted>,
     pub(crate) converter: Option<crate::ui::converter::Session>,
     pub(crate) cleanup_panel: Option<Entity<crate::ui::cleanup::CleanupPanel>>,
