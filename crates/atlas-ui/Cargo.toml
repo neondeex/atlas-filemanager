@@ -47,7 +47,8 @@ semver = "1"
 lru = "0.16"
 # gpui's async executor uses smol; `smol::Timer` drives the BgResult drain loop.
 smol = "2"
-arboard = "3"
+# wayland-data-control: the clipboard works on Wayland compositors without XWayland (niri, sway).
+arboard = { version = "3", features = ["wayland-data-control"] }
 dirs.workspace = true
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "gif", "webp", "bmp", "ico"] }
 open = "5"
@@ -57,6 +58,10 @@ lsp-types = "0.97"
 anyhow = "1"
 zeroize = "1"
 tracy-client = { version = "0.18.4", optional = true, default-features = false, features = ["enable", "only-localhost", "ondemand"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+# Offers a file copy in several formats at once on Wayland (file managers, editors).
+wl-clipboard-rs = "0.9"
 
 [target.'cfg(windows)'.dependencies]
 atlas-win-space = { path = "../atlas-win-space" }
