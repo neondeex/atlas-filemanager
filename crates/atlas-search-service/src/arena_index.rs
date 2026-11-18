@@ -366,6 +366,53 @@ impl ArenaTree {
         results
     }
 
+    /// Live children of a directory node: (id, name, is_dir).
+    pub fn children(&self, parent_id: u32) -> Vec<(u32, String, bool)> {
+        self.nodes
+            .iter()
+            .enumerate()
+            .filter(|(_, n)| n.parent_id == parent_id && !n.is_deleted)
+            .map(|(id, n)| {
+                let name = self.names.get(n.name_offset, n.name_len).to_owned();
+                (id as u32, name, n.is_dir)
+            })
+            .collect()
+    }
+
+    /// Marks a node and everything below it deleted. A child always has a
+    /// higher id than its parent, so one forward pass finds the subtree.
+    pub fn remove_subtree(&mut self, id: u32) {
+        let start = id as usize;
+        if start >= self.nodes.len() {
+            return;
+        }
+        // A file has no children and no folder path: no scan needed.
+        if !self.nodes[start].is_dir {
+            if !self.nodes[start].is_deleted {
+                self.nodes[start].is_deleted = true;
+                self.active_count -= 1;
+            }
+            return;
+        }
+        let mut gone = vec![false; self.nodes.len() - start];
+        gone[0] = true;
+        for i in start + 1..self.nodes.len() {
+            let parent = self.nodes[i].parent_id as usize;
+            if parent >= start && parent != ROOT_PARENT_ID as usize && gone[parent - start] {
+                gone[i - start] = true;
+            }
+        }
+        for (offset, removed) in gone.iter().enumerate() {
+            let node = &mut self.nodes[start + offset];
+            if *removed && !node.is_deleted {
+                node.is_deleted = true;
+                self.active_count -= 1;
+            }
+        }
+        self.dir_paths
+            .retain(|_, v| (*v as usize) < start || !gone[*v as usize - start]);
+    }
+
     /// Approximate memory consumption in bytes.
     pub fn memory_usage_bytes(&self) -> usize {
         let nodes_mem = self.nodes.len() * std::mem::size_of::<FileNode>();
@@ -434,5 +481,40 @@ mod tests {
 
         let mask_nomatch = ascii_mask(b"zebra");
         assert_ne!((mask_file & mask_nomatch), mask_nomatch);
+    }
+
+    #[test]
+    fn removing_a_folder_hides_everything_below_it() {
+        let mut tree = ArenaTree::new();
+        let root = tree.insert_root(Path::new("/home/user"));
+        let docs = tree.insert(root, "docs", true, 0, None);
+        tree.dir_paths
+            .insert(PathBuf::from("/home/user/docs"), docs);
+        let old = tree.insert(docs, "old", true, 0, None);
+        tree.dir_paths
+            .insert(PathBuf::from("/home/user/docs/old"), old);
+        tree.insert(old, "draft-report.txt", false, 1, None);
+        tree.insert(docs, "final-report.txt", false, 1, None);
+        let keep = tree.insert(root, "music", true, 0, None);
+
+        tree.remove_subtree(old);
+
+        let found: Vec<_> = tree
+            .search(&SearchQuery::text("report"))
+            .into_iter()
+            .map(|r| r.path)
+            .collect();
+        assert_eq!(
+            found,
+            vec![PathBuf::from("/home/user/docs/final-report.txt")]
+        );
+        assert!(!tree
+            .dir_paths
+            .contains_key(Path::new("/home/user/docs/old")));
+        assert!(tree.dir_paths.contains_key(Path::new("/home/user/docs")));
+        assert_eq!(tree.active_count, 4);
+        let names: Vec<_> = tree.children(root).into_iter().map(|c| c.1).collect();
+        assert_eq!(names, vec!["docs", "music"]);
+        assert!(!tree.nodes[keep as usize].is_deleted);
     }
 }

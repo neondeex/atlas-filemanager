@@ -17,6 +17,9 @@ tracing.workspace = true
 tracing-subscriber = "0.3"
 walkdir = "2"
 
+[target.'cfg(not(windows))'.dependencies]
+notify = "6"
+
 [target.'cfg(windows)'.dependencies]
 windows-service = "0.8"
 windows-sys = { version = "0.61", features = [

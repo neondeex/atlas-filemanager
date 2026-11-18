@@ -704,6 +704,7 @@ dependencies = [
  "atlas-win-space",
  "dirs 6.0.0",
  "memmap2",
+ "notify 6.1.1",
  "serde_json",
  "tracing",
  "tracing-subscriber",
