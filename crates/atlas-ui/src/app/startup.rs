@@ -527,6 +527,10 @@ impl App {
                 let alive = this
                     .update(cx, |app, cx| {
                         let mut dirty = app.drain_bg_results(cx);
+                        #[cfg(target_os = "linux")]
+                        {
+                            dirty |= app.flush_os_clipboard(cx);
+                        }
                         dirty |= app.tick_ctx_input_blink();
                         dirty |= app.tick_batch_blink(cx);
                         // Drive matching only until this query's snapshot is ready;
@@ -624,6 +628,10 @@ impl App {
             startup_started,
             startup_first_render_logged: false,
             close_after_tab_transfer: false,
+            #[cfg(target_os = "linux")]
+            is_wayland: cx.compositor_name() == "Wayland",
+            #[cfg(target_os = "linux")]
+            os_clipboard_ops: Vec::new(),
             crash_report_sent: false,
             #[cfg(windows)]
             pending_tab_restore,

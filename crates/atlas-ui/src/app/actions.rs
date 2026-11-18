@@ -224,10 +224,13 @@ impl App {
                     self.state.overlay.show_settings = true;
                 }
                 Action::ActivateLicense => {
-                    let key = arboard::Clipboard::new()
-                        .and_then(|mut clipboard| clipboard.get_text())
-                        .map(|text| text.trim().to_owned())
-                        .unwrap_or_default();
+                    let key = crate::app::ops::read_system_clipboard(|clipboard| {
+                        clipboard.get_text().ok()
+                    })
+                    .ok()
+                    .flatten()
+                    .map(|text| text.trim().to_owned())
+                    .unwrap_or_default();
                     // Keys are single short tokens; anything else is not a key.
                     if key.is_empty() || key.len() > 100 || key.contains(char::is_whitespace) {
                         self.toast_info(rust_i18n::t!("license_clipboard_empty").into_owned());
@@ -1865,6 +1868,13 @@ impl App {
             return;
         }
         let text = atlas_core::util::display::clipboard_path_text(paths);
+        #[cfg(target_os = "linux")]
+        if self.clipboard_through_gpui() {
+            self.queue_os_clipboard(crate::app::ops::OsClipboardOp::Write(
+                gpui::ClipboardItem::new_string(text),
+            ));
+            return;
+        }
         if let Ok(mut cb) = arboard::Clipboard::new() {
             let _ = cb.set_text(text.clone());
             #[cfg(target_os = "linux")]

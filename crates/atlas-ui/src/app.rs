@@ -43,6 +43,11 @@ pub struct App {
     pub(crate) startup_started: Instant,
     pub(crate) startup_first_render_logged: bool,
     pub(crate) close_after_tab_transfer: bool,
+    /// gpui runs on Wayland (see `clipboard_through_gpui`).
+    #[cfg(target_os = "linux")]
+    pub(crate) is_wayland: bool,
+    #[cfg(target_os = "linux")]
+    pub(crate) os_clipboard_ops: Vec<ops::OsClipboardOp>,
     /// The previous crash's report was uploaded (or is uploading) this session.
     pub(crate) crash_report_sent: bool,
     #[cfg(windows)]

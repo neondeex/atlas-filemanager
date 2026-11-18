@@ -1251,6 +1251,7 @@ impl LinuxClient for WaylandClient {
             return;
         };
         if state.mouse_focused_window.is_some() || state.keyboard_focused_window.is_some() {
+            let mime_types = Clipboard::offered_mime_types(&item);
             state.clipboard.set(item);
             let Some(serial) = state.serial_tracker.selection_serial() else {
                 log::warn!(
@@ -1260,11 +1261,12 @@ impl LinuxClient for WaylandClient {
             };
             let data_source = data_device_manager
                 .create_data_source(&state.globals.qh, DataSourceKind::Clipboard);
-            for mime_type in TEXT_MIME_TYPES {
+            for mime_type in mime_types {
                 data_source.offer(mime_type.to_string());
             }
             data_source.offer(state.clipboard.self_mime());
             data_device.set_selection(Some(&data_source), serial.as_raw());
+            state.clipboard.ownership_requested();
         }
     }
 

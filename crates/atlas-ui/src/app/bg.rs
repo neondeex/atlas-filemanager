@@ -1338,9 +1338,7 @@ impl App {
                         && !report.completed.is_empty()
                     {
                         self.state.ops.clipboard = None;
-                        if let Ok(mut cb) = arboard::Clipboard::new() {
-                            let _ = cb.clear();
-                        }
+                        self.clear_system_clipboard();
                     }
                     if report.cancelled {
                         self.toast_error(

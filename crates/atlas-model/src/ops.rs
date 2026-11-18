@@ -16,6 +16,9 @@ pub struct ClipboardState {
     /// Set when the paths come from a remote tab (remote-relative paths, not local).
     /// `None` = local filesystem paths.
     pub remote_id: Option<String>,
+    /// Atlas offered these paths on the system clipboard itself and keeps
+    /// serving them until another app takes the clipboard over (Wayland).
+    pub on_system_clipboard: bool,
 }
 
 /// How to handle a destination file that already exists when pasting.
