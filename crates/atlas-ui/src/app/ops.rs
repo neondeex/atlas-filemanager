@@ -524,15 +524,25 @@ impl App {
             {
                 let uri_list =
                     crate::dnd::format_uri_list_with_cut(&paths, is_cut).replace('\0', "");
+                #[cfg(target_os = "linux")]
+                let published = linux_clipboard::offer_files(&paths, is_cut, &uri_list);
+                #[cfg(not(target_os = "linux"))]
+                let published = false;
                 if let Ok(mut cb) = arboard::Clipboard::new() {
-                    let _ = cb.set_text(uri_list.clone());
                     #[cfg(target_os = "linux")]
                     {
                         use arboard::{LinuxClipboardKind, SetExtLinux};
+                        if !published {
+                            let _ = cb.set_text(uri_list.clone());
+                        }
                         let _ = cb
                             .set()
                             .clipboard(LinuxClipboardKind::Primary)
                             .text(uri_list);
+                    }
+                    #[cfg(not(target_os = "linux"))]
+                    if !published {
+                        let _ = cb.set_text(uri_list);
                     }
                 }
             }
@@ -576,29 +586,24 @@ impl App {
         };
         #[cfg(not(windows))]
         let source = {
-            let sys_text = arboard::Clipboard::new()
-                .ok()
-                .and_then(|mut cb| cb.get_text().ok());
-
-            let mut sys_files = sys_text.as_deref().and_then(|text| {
-                let (paths, ext_cut) = crate::dnd::parse_uri_list_with_cut(text);
-                if paths.is_empty() {
-                    None
-                } else {
-                    Some((paths, ext_cut))
-                }
+            let read = read_system_clipboard(|cb| {
+                let text = cb.get_text().ok();
+                let from_text = text.as_deref().and_then(|text| {
+                    let (paths, ext_cut) = crate::dnd::parse_uri_list_with_cut(text);
+                    (!paths.is_empty()).then_some((paths, ext_cut))
+                });
+                // Also check file_list in case the external app only exposed a URI list.
+                let files = from_text.or_else(|| {
+                    cb.get()
+                        .file_list()
+                        .ok()
+                        .filter(|paths| !paths.is_empty())
+                        .map(|paths| (paths, false))
+                });
+                Some((text, files))
             });
-
-            // Also check arboard file_list in case the external app only exposed atoms.URI_LIST
-            if sys_files.is_none() {
-                if let Ok(mut cb) = arboard::Clipboard::new() {
-                    if let Ok(paths) = cb.get().file_list() {
-                        if !paths.is_empty() {
-                            sys_files = Some((paths, false));
-                        }
-                    }
-                }
-            }
+            let timed_out = read.is_err();
+            let (sys_text, sys_files) = read.ok().flatten().unwrap_or_default();
 
             match sys_files {
                 Some((sys_paths, ext_cut)) => {
@@ -635,10 +640,8 @@ impl App {
                         .as_ref()
                         .and_then(|c| c.remote_id.as_ref())
                         .is_some();
-                    if let Some(text) = &sys_text {
-                        if !text.trim().is_empty() && !is_remote {
-                            self.state.ops.clipboard = None;
-                        }
+                    if system_clipboard_replaced(timed_out, sys_text.as_deref()) && !is_remote {
+                        self.state.ops.clipboard = None;
                     }
                     self.state.ops.clipboard.as_ref().map(|c| {
                         (
@@ -1063,6 +1066,199 @@ impl App {
                 }
             }
             self.state.ops.undo_stack.undo.push_back(entry);
+        }
+    }
+}
+
+/// Whether something other than files now holds the system clipboard, so
+/// Atlas's own cut or copy is stale. A read that timed out counts: the usual
+/// owner that cannot answer is one of Atlas's own text inputs.
+#[cfg(not(windows))]
+fn system_clipboard_replaced(timed_out: bool, text: Option<&str>) -> bool {
+    timed_out || text.is_some_and(|text| !text.trim().is_empty())
+}
+
+/// The system clipboard did not answer in time (Linux only).
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct ClipboardTimedOut;
+
+/// Reads the system clipboard without letting the read freeze the UI.
+/// `Ok(None)` means no clipboard or nothing readable.
+///
+/// On Linux the read runs on a helper thread and gives up after 500 ms. When
+/// Atlas itself owns the Wayland clipboard (text copied in one of its inputs),
+/// the compositor asks the UI thread for the data, so a read that waits on the
+/// UI thread never ends; the helper finishes once the UI thread is free again.
+/// Elsewhere the read runs inline.
+pub(crate) fn read_system_clipboard<T: Send + 'static>(
+    read: impl FnOnce(&mut arboard::Clipboard) -> Option<T> + Send + 'static,
+) -> Result<Option<T>, ClipboardTimedOut> {
+    let read = move || {
+        arboard::Clipboard::new()
+            .ok()
+            .and_then(|mut cb| read(&mut cb))
+    };
+    #[cfg(target_os = "linux")]
+    return off_thread(CLIPBOARD_READ_TIMEOUT, read);
+    #[cfg(not(target_os = "linux"))]
+    Ok(read())
+}
+
+#[cfg(target_os = "linux")]
+const CLIPBOARD_READ_TIMEOUT: std::time::Duration = std::time::Duration::from_millis(500);
+
+/// Runs `read` on its own thread and gives up waiting after `timeout`.
+#[cfg(target_os = "linux")]
+fn off_thread<T: Send + 'static>(
+    timeout: std::time::Duration,
+    read: impl FnOnce() -> Option<T> + Send + 'static,
+) -> Result<Option<T>, ClipboardTimedOut> {
+    use std::sync::mpsc::RecvTimeoutError;
+    let (tx, rx) = std::sync::mpsc::sync_channel(1);
+    let spawned = std::thread::Builder::new()
+        .name("clipboard-read".into())
+        .spawn(move || {
+            let _ = tx.send(read());
+        });
+    if spawned.is_err() {
+        return Ok(None);
+    }
+    match rx.recv_timeout(timeout) {
+        Ok(value) => Ok(value),
+        Err(RecvTimeoutError::Timeout) => Err(ClipboardTimedOut),
+        Err(RecvTimeoutError::Disconnected) => Ok(None),
+    }
+}
+
+#[cfg(target_os = "linux")]
+mod linux_clipboard {
+    use std::path::PathBuf;
+    use wl_clipboard_rs::copy::{MimeSource, MimeType, Options, Source};
+
+    /// The formats other apps read for copied files: text/uri-list (file
+    /// managers) and the GNOME and KDE markers that tell Nautilus and Dolphin
+    /// whether to move or copy.
+    pub(super) fn file_offers(paths: &[PathBuf], is_cut: bool) -> [(&'static str, String); 3] {
+        let uris: Vec<String> = paths
+            .iter()
+            .map(|p| crate::dnd::path_to_file_uri(p))
+            .collect();
+        let verb = if is_cut { "cut" } else { "copy" };
+        [
+            (
+                "text/uri-list",
+                uris.iter().map(|u| u.clone() + "\r\n").collect(),
+            ),
+            (
+                "x-special/gnome-copied-files",
+                format!("{verb}\n{}", uris.join("\n")),
+            ),
+            (
+                "application/x-kde-cutselection",
+                if is_cut { "1" } else { "0" }.into(),
+            ),
+        ]
+    }
+
+    /// The plain text comes first: wl-clipboard-rs offers the first text-like
+    /// source under `text/plain;charset=utf-8`, `UTF8_STRING` and the other text
+    /// names editors ask for, and `text/uri-list` counts as text-like too.
+    pub(super) fn sources(paths: &[PathBuf], is_cut: bool, text: &str) -> Vec<MimeSource> {
+        let text = MimeSource {
+            source: Source::Bytes(text.as_bytes().into()),
+            mime_type: MimeType::Text,
+        };
+        std::iter::once(text)
+            .chain(
+                file_offers(paths, is_cut)
+                    .into_iter()
+                    .map(|(mime, body)| MimeSource {
+                        source: Source::Bytes(body.into_bytes().into_boxed_slice()),
+                        mime_type: MimeType::Specific(mime.to_owned()),
+                    }),
+            )
+            .collect()
+    }
+
+    /// Puts copied or cut files on the Wayland clipboard in those formats plus
+    /// `text` for editors. Returns false without a Wayland session that has
+    /// the data-control protocol; the caller then uses arboard's text path.
+    pub fn offer_files(paths: &[PathBuf], is_cut: bool, text: &str) -> bool {
+        if std::env::var_os("WAYLAND_DISPLAY").is_none() {
+            return false;
+        }
+        Options::new()
+            .copy_multi(sources(paths, is_cut, text))
+            .is_ok()
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::{file_offers, sources};
+        use std::path::PathBuf;
+        use wl_clipboard_rs::copy::{MimeType, Source};
+
+        #[test]
+        fn copied_files_carry_uri_list_and_cut_markers() {
+            let paths = [
+                PathBuf::from("/home/a/My File.txt"),
+                PathBuf::from("/tmp/b#1"),
+            ];
+            let [uri_list, gnome, kde] = file_offers(&paths, true);
+            assert_eq!(
+                uri_list,
+                (
+                    "text/uri-list",
+                    "file:///home/a/My%20File.txt\r\nfile:///tmp/b%231\r\n".into()
+                )
+            );
+            assert_eq!(
+                gnome,
+                (
+                    "x-special/gnome-copied-files",
+                    "cut\nfile:///home/a/My%20File.txt\nfile:///tmp/b%231".into()
+                )
+            );
+            assert_eq!(kde, ("application/x-kde-cutselection", "1".into()));
+
+            let [_, gnome, kde] = file_offers(&paths[..1], false);
+            assert!(gnome.1.starts_with("copy\n"));
+            assert_eq!(kde.1, "0");
+        }
+
+        #[test]
+        fn a_clipboard_read_that_never_answers_does_not_block_the_caller() {
+            let (_keep_open, never) = std::sync::mpsc::channel::<()>();
+            let read = super::super::off_thread(std::time::Duration::from_millis(20), move || {
+                never.recv().ok().map(|()| "late")
+            });
+            assert_eq!(read, Err(super::super::ClipboardTimedOut));
+            let read =
+                super::super::off_thread(std::time::Duration::from_secs(5), || Some("files"));
+            assert_eq!(read, Ok(Some("files")));
+        }
+
+        #[test]
+        fn a_timed_out_or_text_clipboard_makes_the_internal_cut_stale() {
+            use super::super::system_clipboard_replaced as replaced;
+            assert!(replaced(true, None));
+            assert!(replaced(false, Some("hello")));
+            assert!(!replaced(false, Some(" \n")));
+            assert!(!replaced(false, None));
+        }
+
+        #[test]
+        fn plain_text_is_offered_before_the_uri_list() {
+            let paths = [PathBuf::from("/home/a/x.txt")];
+            let offered = sources(&paths, false, "/home/a/x.txt");
+            assert_eq!(offered[0].mime_type, MimeType::Text);
+            assert_eq!(offered[0].source, Source::Bytes((*b"/home/a/x.txt").into()));
+            let rest: Vec<_> = offered[1..].iter().map(|s| s.mime_type.clone()).collect();
+            assert_eq!(
+                rest,
+                file_offers(&paths, false).map(|(mime, _)| MimeType::Specific(mime.into()))
+            );
         }
     }
 }
