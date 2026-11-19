@@ -68,6 +68,16 @@ mod windows_impl {
 
     const SERVICE_NAME: &str = "AtlasSearchService";
 
+    /// Another copy (the service or a `--console` one) holds the index.
+    #[derive(Debug)]
+    struct AlreadyRunning;
+    impl std::fmt::Display for AlreadyRunning {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.write_str("Atlas Search Service is already running")
+        }
+    }
+    impl std::error::Error for AlreadyRunning {}
+
     struct State {
         volumes: RwLock<Vec<(char, MappedVolume)>>,
         progress: RwLock<Vec<SearchProgress>>,
@@ -157,35 +167,55 @@ mod windows_impl {
         Ok(())
     }
 
+    /// Register (or repair) the service and start it. The SCM API quotes the
+    /// image path itself: `sc.exe create binPath= ...` stored it with a leading
+    /// space on some Windows 11 builds, and the service then never started
+    /// ("The parameter is incorrect"). A re-install also repairs such a
+    /// registration instead of failing on the existing service.
     fn install_service() -> anyhow::Result<()> {
-        use std::os::windows::process::CommandExt;
-        let current_exe = std::env::current_exe()?;
-        let path_str = current_exe.to_string_lossy();
-        let status = std::process::Command::new("sc.exe")
-            .args([
-                "create",
-                SERVICE_NAME,
-                "binPath=",
-                &format!("\"{}\"", path_str),
-                "start=",
-                "auto",
-                "DisplayName=",
-                "Atlas Search Service",
-            ])
-            .creation_flags(0x0800_0000)
-            .status()?;
-        if !status.success() {
-            anyhow::bail!("sc.exe create failed with status {status}");
-        }
+        use windows_service::service::{
+            ServiceAccess, ServiceErrorControl, ServiceInfo, ServiceStartType,
+        };
+        use windows_service::service_manager::{ServiceManager, ServiceManagerAccess};
+        let info = ServiceInfo {
+            name: OsString::from(SERVICE_NAME),
+            display_name: OsString::from("Atlas Search Service"),
+            service_type: ServiceType::OWN_PROCESS,
+            start_type: ServiceStartType::AutoStart,
+            error_control: ServiceErrorControl::Normal,
+            executable_path: std::env::current_exe()?,
+            launch_arguments: Vec::new(),
+            dependencies: Vec::new(),
+            account_name: None, // LocalSystem
+            account_password: None,
+        };
+        let manager = ServiceManager::local_computer(
+            None::<&str>,
+            ServiceManagerAccess::CONNECT | ServiceManagerAccess::CREATE_SERVICE,
+        )?;
+        let access =
+            ServiceAccess::QUERY_STATUS | ServiceAccess::START | ServiceAccess::CHANGE_CONFIG;
+        let service = match manager.create_service(&info, access) {
+            Ok(service) => service,
+            Err(windows_service::Error::Winapi(error))
+                if error.raw_os_error()
+                    == Some(windows_sys::Win32::Foundation::ERROR_SERVICE_EXISTS as i32) =>
+            {
+                let service = manager.open_service(SERVICE_NAME, access)?;
+                service
+                    .change_config(&info)
+                    .context("repair the existing service registration")?;
+                service
+            }
+            Err(error) => return Err(error).context("register the search service"),
+        };
         eprintln!("Service '{SERVICE_NAME}' registered with start=auto.");
-        let start_status = std::process::Command::new("sc.exe")
-            .args(["start", SERVICE_NAME])
-            .creation_flags(0x0800_0000)
-            .status()?;
-        if start_status.success() {
-            eprintln!("Service '{SERVICE_NAME}' started successfully.");
-        } else {
-            eprintln!("Service '{SERVICE_NAME}' registered; start returned {start_status}");
+        if service.query_status()?.current_state != ServiceState::Stopped {
+            return Ok(());
+        }
+        match service.start::<&OsStr>(&[]) {
+            Ok(()) => eprintln!("Service '{SERVICE_NAME}' started successfully."),
+            Err(error) => eprintln!("Service '{SERVICE_NAME}' registered; start failed: {error}"),
         }
         Ok(())
     }
@@ -275,12 +305,20 @@ mod windows_impl {
             wait_hint: Duration::ZERO,
             process_id: None,
         });
-        let _ = run(stop);
+        // A failed start used to report success, which hid why the service
+        // stopped right away; the service manager now logs the reason.
+        let exit_code = match run(stop) {
+            Ok(()) => ServiceExitCode::Win32(0),
+            Err(error) if error.is::<AlreadyRunning>() => ServiceExitCode::Win32(
+                windows_sys::Win32::Foundation::ERROR_SERVICE_ALREADY_RUNNING,
+            ),
+            Err(_) => ServiceExitCode::ServiceSpecific(1),
+        };
         let _ = handle.set_service_status(ServiceStatus {
             service_type: ServiceType::OWN_PROCESS,
             current_state: ServiceState::Stopped,
             controls_accepted: ServiceControlAccept::empty(),
-            exit_code: ServiceExitCode::Win32(0),
+            exit_code,
             checkpoint: 0,
             wait_hint: Duration::ZERO,
             process_id: None,
@@ -297,8 +335,10 @@ mod windows_impl {
             .collect();
         let mutex = unsafe { CreateMutexW(null_mut(), 1, mutex_name.as_ptr()) };
         if unsafe { windows_sys::Win32::Foundation::GetLastError() } == ERROR_ALREADY_EXISTS {
-            eprintln!("Atlas Search Service is already running.");
-            return Ok(());
+            if !mutex.is_null() {
+                unsafe { CloseHandle(mutex) };
+            }
+            return Err(AlreadyRunning.into());
         }
 
         eprintln!("Atlas Search Service {}", env!("CARGO_PKG_VERSION"));
@@ -314,9 +354,28 @@ mod windows_impl {
         result
     }
 
+    /// The first index build reads every volume's MFT right after Windows starts.
+    /// Run it below normal CPU priority so sign-in and foreground apps go first.
+    /// CPU only: background mode would also lower the memory priority of the
+    /// index pages that later searches read.
+    fn index_thread_priority(lower: bool) {
+        use windows_sys::Win32::System::Threading::{
+            GetCurrentThread, SetThreadPriority, THREAD_PRIORITY_BELOW_NORMAL,
+            THREAD_PRIORITY_NORMAL,
+        };
+        let priority = if lower {
+            THREAD_PRIORITY_BELOW_NORMAL
+        } else {
+            THREAD_PRIORITY_NORMAL
+        };
+        // SAFETY: the pseudo-handle names the calling thread.
+        unsafe { SetThreadPriority(GetCurrentThread(), priority) };
+    }
+
     fn index_loop(state: &State, stop: &AtomicBool) {
         let data_dir = data_directory();
         let _ = fs::create_dir_all(&data_dir);
+        index_thread_priority(true);
         for letter in drive_letters() {
             if stop.load(Ordering::Acquire) {
                 return;
@@ -340,6 +399,9 @@ mod windows_impl {
                 ),
             }
         }
+        // Journal replay holds the index lock that searches wait for: never let
+        // a low-priority thread hold it.
+        index_thread_priority(false);
         while !stop.load(Ordering::Acquire) {
             {
                 let mut volumes = state.volumes.write().unwrap_or_else(|e| e.into_inner());
@@ -657,7 +719,14 @@ mod windows_impl {
                     .clone(),
             ),
             Ok(ServiceRequest::Search(query)) => {
-                ServiceResponse::Search(execute_search(state, &query))
+                let mut batch = execute_search(state, &query);
+                match visible_to_client(pipe, std::mem::take(&mut batch.results)) {
+                    Ok(results) => {
+                        batch.results = results;
+                        ServiceResponse::Search(batch)
+                    }
+                    Err(error) => ServiceResponse::Error(error),
+                }
             }
             Err(error) => ServiceResponse::Error(error.to_string()),
         };
@@ -679,6 +748,44 @@ mod windows_impl {
                 FlushFileBuffers(pipe);
             }
         }
+    }
+
+    /// The index is built from every volume's MFT by a LocalSystem service, so it
+    /// names files inside other users' private folders. Hand each client only what
+    /// it could list itself: impersonate the pipe client and keep the results its
+    /// own token can read the attributes of. Fails closed when the client cannot
+    /// be impersonated.
+    fn visible_to_client(
+        pipe: HANDLE,
+        results: Vec<SearchResult>,
+    ) -> Result<Vec<SearchResult>, String> {
+        use windows_sys::Win32::Security::RevertToSelf;
+        use windows_sys::Win32::System::Pipes::ImpersonateNamedPipeClient;
+
+        struct Revert;
+        impl Drop for Revert {
+            fn drop(&mut self) {
+                // Never keep serving with a client's identity on this thread.
+                if unsafe { RevertToSelf() } == 0 {
+                    std::process::abort();
+                }
+            }
+        }
+
+        if results.is_empty() {
+            return Ok(results);
+        }
+        if unsafe { ImpersonateNamedPipeClient(pipe) } == 0 {
+            return Err(format!(
+                "cannot verify the client's access: {}",
+                io::Error::last_os_error()
+            ));
+        }
+        let _revert = Revert;
+        Ok(results
+            .into_iter()
+            .filter(|result| fs::symlink_metadata(&result.path).is_ok())
+            .collect())
     }
 
     fn execute_search(state: &State, query: &SearchQuery) -> SearchBatch {

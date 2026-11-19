@@ -551,6 +551,54 @@ fn open_url(url: &'static str) {
     }
 }
 
+/// Theme picker rows, recommended first. `dark` keeps only dark (`Some(true)`)
+/// or light (`Some(false)`) themes; `None` lists every available theme.
+/// Position of `percent` among the resource-limit choices; values that are
+/// not offered (hand-edited settings) show as unlimited.
+fn cpu_limit_index(percent: u8) -> usize {
+    let choices = atlas_core::resources::CHOICES;
+    choices
+        .iter()
+        .position(|&choice| choice == percent)
+        .unwrap_or(choices.len() - 1)
+}
+
+fn theme_choice_options(cx: &gpui::App, dark: Option<bool>) -> Vec<ChoiceOption> {
+    let registry = gpui_component::ThemeRegistry::global(cx);
+    let mut options: Vec<ChoiceOption> = registry
+        .themes()
+        .iter()
+        .filter(|(name, _)| crate::app::theme::theme_is_available(name))
+        .filter(|(_, config)| dark.is_none_or(|dark| config.mode.is_dark() == dark))
+        .map(|(name, config)| {
+            let mut option = ChoiceOption::new(name.clone(), name.clone());
+            option.swatch = theme_swatch(config);
+            if name.as_ref() == RECOMMENDED_THEME {
+                option.detail = Some(t("sp_recommended"));
+            }
+            option
+        })
+        .collect();
+    options.sort_by(|a, b| {
+        (a.label != RECOMMENDED_THEME, &a.label).cmp(&(b.label != RECOMMENDED_THEME, &b.label))
+    });
+    options
+}
+
+/// Live preview while browsing a theme list; `None` reverts it.
+fn preview_theme_option(app: &mut App, name: Option<&str>) {
+    match name {
+        Some(name) => {
+            app.settings_theme_previewing = true;
+            app.preview_theme(name.to_string());
+        }
+        None => {
+            app.settings_theme_previewing = false;
+            app.restore_theme_preview();
+        }
+    }
+}
+
 fn theme_swatch(config: &gpui_component::ThemeConfig) -> Option<[Hsla; 3]> {
     let parse = |value: Option<&SharedString>| {
         value.and_then(|hex| gpui_component::try_parse_color(hex).ok())
@@ -682,26 +730,7 @@ pub(crate) static SETTINGS: LazyLock<Vec<SettingDef>> = LazyLock::new(|| {
             desc: Some("sp_theme_desc"),
             keywords: "theme tema color colores dark light oscuro claro glass",
             control: Control::Choice {
-                options: |_, cx| {
-                    let registry = gpui_component::ThemeRegistry::global(cx);
-                    let mut options: Vec<ChoiceOption> = registry
-                        .themes()
-                        .iter()
-                        .filter(|(name, _)| crate::app::theme::theme_is_available(name))
-                        .map(|(name, config)| {
-                            let mut option = ChoiceOption::new(name.clone(), name.clone());
-                            option.swatch = theme_swatch(config);
-                            if name.as_ref() == RECOMMENDED_THEME {
-                                option.detail = Some(t("sp_recommended"));
-                            }
-                            option
-                        })
-                        .collect();
-                    options.sort_by(|a, b| {
-                        (a.label != RECOMMENDED_THEME, &a.label).cmp(&(b.label != RECOMMENDED_THEME, &b.label))
-                    });
-                    options
-                },
+                options: |_, cx| theme_choice_options(cx, None),
                 current: |app| {
                     app.theme_preview_before
                         .clone()
@@ -723,6 +752,49 @@ pub(crate) static SETTINGS: LazyLock<Vec<SettingDef>> = LazyLock::new(|| {
                     }
                 }),
                 default: Some(|_| atlas_model::profiles::DEFAULT_THEME.into()),
+            },
+        },
+        SettingDef {
+            id: "theme-follow-system",
+            category: Category::Appearance,
+            icon: AtlasIcon::Monitor,
+            title: "sp_theme_follow_system",
+            desc: Some("sp_theme_follow_system_desc"),
+            keywords: "system sistema windows auto automatic automatico automatique dark light oscuro claro scuro chiaro night noche notte mode modo modalità appearance apariencia aspetto",
+            control: Control::Toggle {
+                get: |app| app.theme_follows_system(),
+                set: |app, on| app.set_theme_follow_system(on),
+                default: Some(|_| false),
+            },
+        },
+        SettingDef {
+            id: "theme-light",
+            category: Category::Appearance,
+            icon: AtlasIcon::Palette,
+            title: "sp_theme_light",
+            desc: Some("sp_theme_light_desc"),
+            keywords: "theme tema light claro chiaro day día giorno",
+            control: Control::Choice {
+                options: |_, cx| theme_choice_options(cx, Some(false)),
+                current: |app| app.appearance_theme(false).into(),
+                pick: |app, name| app.pick_appearance_theme(name, false),
+                preview: Some(preview_theme_option),
+                default: Some(|_| atlas_model::profiles::DEFAULT_THEME.into()),
+            },
+        },
+        SettingDef {
+            id: "theme-dark",
+            category: Category::Appearance,
+            icon: AtlasIcon::Palette,
+            title: "sp_theme_dark",
+            desc: Some("sp_theme_dark_desc"),
+            keywords: "theme tema dark oscuro scuro night noche notte",
+            control: Control::Choice {
+                options: |_, cx| theme_choice_options(cx, Some(true)),
+                current: |app| app.appearance_theme(true).into(),
+                pick: |app, name| app.pick_appearance_theme(name, true),
+                preview: Some(preview_theme_option),
+                default: Some(|_| atlas_model::profiles::DEFAULT_DARK_THEME.into()),
             },
         },
         SettingDef {
@@ -1028,6 +1100,19 @@ pub(crate) static SETTINGS: LazyLock<Vec<SettingDef>> = LazyLock::new(|| {
                     }
                 },
                 default: Some(|s| s.show_hidden),
+            },
+        },
+        SettingDef {
+            id: "git-integration",
+            category: Category::Files,
+            icon: AtlasIcon::GitBranch,
+            title: "sp_git_integration",
+            desc: Some("sp_git_integration_desc"),
+            keywords: "git repository repositorio commit branch rama history historial github",
+            control: Control::Toggle {
+                get: |app| app.state.settings.git_integration,
+                set: |app, on| app.state.settings.git_integration = on,
+                default: Some(|s| s.git_integration),
             },
         },
         SettingDef {
@@ -1406,6 +1491,30 @@ pub(crate) static SETTINGS: LazyLock<Vec<SettingDef>> = LazyLock::new(|| {
             },
         },
         SettingDef {
+            id: "cpu-limit",
+            category: Category::Performance,
+            icon: AtlasIcon::Gauge,
+            title: "sp_cpu_limit",
+            desc: Some("sp_cpu_limit_desc"),
+            keywords: "cpu processor processore risorse resources limit limite performance prestazioni rendimiento battery batteria fan ventola",
+            control: Control::Segmented {
+                labels: || {
+                    atlas_core::resources::CHOICES
+                        .iter()
+                        .map(|percent| SharedString::from(format!("{percent}%")))
+                        .collect()
+                },
+                icons: &[],
+                get: |app| cpu_limit_index(app.state.settings.cpu_limit),
+                set: |app, index| {
+                    let percent = atlas_core::resources::CHOICES.get(index).copied().unwrap_or(100);
+                    app.state.settings.cpu_limit = percent;
+                    atlas_core::resources::apply(percent);
+                },
+                default: Some(|s| cpu_limit_index(s.cpu_limit)),
+            },
+        },
+        SettingDef {
             id: "goto-extended-index",
             category: Category::Performance,
             icon: AtlasIcon::Search,
@@ -1479,6 +1588,31 @@ pub(crate) static SETTINGS: LazyLock<Vec<SettingDef>> = LazyLock::new(|| {
         link!("winfsp", AtlasIcon::HardDrives, "sp_winfsp", Some("sp_winfsp_desc"), "winfsp file system proxy", "https://github.com/winfsp/winfsp"),
         link!("icons8", AtlasIcon::Image, "sp_icons8", Some("settings_icons_by"), "icons iconos icons8 credits creditos", "https://icons8.com"),
     ];
+    // Windows updates come from the Microsoft Store and the app checks no
+    // feed, so the toggle only exists where a startup check still happens.
+    #[cfg(not(windows))]
+    {
+        let at = list
+            .iter()
+            .position(|def| def.id == "guide")
+            .unwrap_or(list.len());
+        list.insert(
+            at,
+            SettingDef {
+                id: "check-updates",
+                category: Category::About,
+                icon: AtlasIcon::ArrowClockwise,
+                title: "sp_check_updates",
+                desc: Some("sp_check_updates_desc"),
+                keywords: "update updates aggiornamenti aggiornamento actualizar version privacy privacidad",
+                control: Control::Toggle {
+                    get: |app| app.state.settings.check_updates,
+                    set: |app, on| app.state.settings.check_updates = on,
+                    default: Some(|s| s.check_updates),
+                },
+            },
+        );
+    }
     #[cfg(windows)]
     list.insert(
         2,
@@ -1495,10 +1629,50 @@ pub(crate) static SETTINGS: LazyLock<Vec<SettingDef>> = LazyLock::new(|| {
                     if app.win_e_enabled == on {
                         return;
                     }
-                    match atlas_win_space::integration::set_win_e_enabled(on) {
+                    use atlas_win_space::explorer_redirect;
+                    // The registry override still covers plain `explorer.exe`
+                    // launches; the agent covers Win+E itself. Another app
+                    // owning the override must not block the agent.
+                    if let Err(error) = atlas_win_space::integration::set_win_e_enabled(on) {
+                        tracing::warn!(%error, "Win+E registry override unchanged");
+                    }
+                    let mut choice = explorer_redirect::current();
+                    choice.start_page = on;
+                    match explorer_redirect::set(choice) {
                         Ok(()) => app.win_e_enabled = on,
                         Err(error) => app.toast_error(
                             rust_i18n::t!("settings_win_e_error", error = error.to_string())
+                                .into_owned(),
+                        ),
+                    }
+                },
+                default: None,
+            },
+        },
+    );
+    #[cfg(windows)]
+    list.insert(
+        3,
+        SettingDef {
+            id: "explorer-folders",
+            category: Category::General,
+            icon: AtlasIcon::FolderOpen,
+            title: "settings_explorer_folders",
+            desc: Some("sp_explorer_folders_desc"),
+            keywords: "explorer explorador esplora open file location percorso show in folder mostra cartella default predeterminado",
+            control: Control::Toggle {
+                get: |app| app.explorer_folders,
+                set: |app, on| {
+                    if app.explorer_folders == on {
+                        return;
+                    }
+                    use atlas_win_space::explorer_redirect;
+                    let mut choice = explorer_redirect::current();
+                    choice.folders = on;
+                    match explorer_redirect::set(choice) {
+                        Ok(()) => app.explorer_folders = on,
+                        Err(error) => app.toast_error(
+                            rust_i18n::t!("settings_explorer_error", error = error.to_string())
                                 .into_owned(),
                         ),
                     }

@@ -42,6 +42,10 @@ pub(crate) struct UiNativeItem {
     pub is_default: bool,
 }
 
+/// Canonical verb of Windows' "Open file location" (shortcuts).
+#[cfg(windows)]
+const OPEN_CONTAINING_VERB: &str = "opencontaining";
+
 // Shell command ids are bounded; reserve one local id for the combined group.
 const OPEN_WITH_GROUP: u32 = u32::MAX;
 const VIEW_GROUP: u32 = u32::MAX - 1;
@@ -133,8 +137,8 @@ pub(crate) struct CtxMenuState {
     pub anchor: Point<Pixels>,
     /// Physical screen pixels for the native `InvokeCommand` (`ptInvoke`).
     pub screen_pt: (i32, i32),
-    // reason: retained for a future "rebuild menu" path; not read yet.
-    #[allow(dead_code)]
+    // reason: only Windows reads it ("Open file location" stays in Atlas).
+    #[cfg_attr(not(windows), allow(dead_code))]
     pub paths: Vec<PathBuf>,
     pub native: Vec<UiNativeItem>,
     /// True until the worker's `Built` event arrives (shows a skeleton row).
@@ -163,6 +167,9 @@ pub(crate) struct CtxMenuState {
 #[derive(Clone, Copy, PartialEq)]
 enum AtlasCmd {
     DiskCleanup,
+    #[cfg(windows)]
+    MapNetworkDrive,
+    Git,
     ProtectFolder,
     UnlockFolder,
     Convert,
@@ -188,6 +195,9 @@ impl AtlasCmd {
     fn label(self) -> String {
         match self {
             Self::DiskCleanup => rust_i18n::t!("cleanup_open").to_string(),
+            #[cfg(windows)]
+            Self::MapNetworkDrive => rust_i18n::t!("network_map_drive").to_string(),
+            Self::Git => rust_i18n::t!("git_open").to_string(),
             Self::ProtectFolder => rust_i18n::t!("vault_context_protect").to_string(),
             Self::UnlockFolder => rust_i18n::t!("vault_context_unlock").to_string(),
             Self::Convert => rust_i18n::t!("convert_title").to_string(),
@@ -212,6 +222,9 @@ impl AtlasCmd {
     fn icon(self) -> Option<AtlasIcon> {
         match self {
             Self::DiskCleanup => Some(AtlasIcon::HardDrive),
+            #[cfg(windows)]
+            Self::MapNetworkDrive => Some(AtlasIcon::NetworkDrive),
+            Self::Git => Some(AtlasIcon::GitBranch),
             Self::ProtectFolder | Self::UnlockFolder => Some(AtlasIcon::Lock),
             Self::Convert => Some(AtlasIcon::ArrowClockwise),
             Self::Open => Some(AtlasIcon::Eye),
@@ -236,6 +249,9 @@ impl AtlasCmd {
     fn command_id(self) -> &'static str {
         match self {
             Self::DiskCleanup => "disk.cleanup",
+            #[cfg(windows)]
+            Self::MapNetworkDrive => "net.map-drive",
+            Self::Git => "git.open",
             Self::ProtectFolder => "vault.protect",
             Self::UnlockFolder => "vault.unlock",
             Self::Convert => "files.convert",
@@ -778,13 +794,18 @@ impl App {
         let drive_root = cfg!(windows)
             && !state.background
             && state.paths.len() == 1
-            && atlas_core::cleanup::is_drive_root(&state.paths[0]);
+            && atlas_core::cleanup::is_analysis_root(&state.paths[0]);
         if drive_root {
             atlas_items = vec![
                 (AtlasCmd::Open, false),
                 (AtlasCmd::DiskCleanup, true),
                 (AtlasCmd::Properties, false),
             ];
+            // A share inside `\server`: offer to map it like Explorer does.
+            #[cfg(windows)]
+            if atlas_core::fs::network::is_share_root(&state.paths[0]) {
+                atlas_items.insert(2, (AtlasCmd::MapNetworkDrive, false));
+            }
         }
         if !state.background && !is_recycle_bin && !drive_root {
             if state
@@ -801,7 +822,23 @@ impl App {
                     .is_some_and(|t| !t.location.is_archive())
             {
                 atlas_items.insert(2, (AtlasCmd::ProtectFolder, false));
+                if self.state.settings.git_integration {
+                    atlas_items.insert(2, (AtlasCmd::Git, false));
+                }
             }
+        }
+        // The pane's own folder: its repository, or the offer to create one.
+        if state.background
+            && self.state.settings.git_integration
+            && self.state.active_tab_data().is_some_and(|t| {
+                matches!(t.location, atlas_model::location::Location::Directory(_))
+            })
+        {
+            let at = atlas_items
+                .iter()
+                .position(|(cmd, _)| *cmd == AtlasCmd::OpenTerminal)
+                .map_or(atlas_items.len(), |i| i + 1);
+            atlas_items.insert(at, (AtlasCmd::Git, true));
         }
 
         let current_view = self
@@ -1605,6 +1642,13 @@ impl App {
                     self.open_disk_cleanup(path.clone(), cx);
                 }
             }
+            #[cfg(windows)]
+            AtlasCmd::MapNetworkDrive => {
+                self.map_network_drive(menu_paths.first().cloned());
+            }
+            AtlasCmd::Git => {
+                self.open_git_panel(menu_paths.first().cloned());
+            }
             AtlasCmd::ProtectFolder => {
                 if let [path] = menu_paths.as_slice() {
                     self.request_vault(path.clone(), crate::app::vault::Phase::Create);
@@ -1830,6 +1874,53 @@ impl App {
         cx.notify();
     }
 
+    /// Windows' "Open file location": show the shortcut's target, selected,
+    /// in this pane rather than in a new File Explorer window. Shortcuts to
+    /// shell places (no file-system target) keep the native command.
+    #[cfg(windows)]
+    fn open_containing_in_atlas(&mut self, id: u32, cx: &mut Context<Self>) -> bool {
+        let Some(menu) = self.ctx_menu.as_ref() else {
+            return false;
+        };
+        let open_containing = !menu.background
+            && menu.native.iter().any(|item| {
+                item.id == id
+                    && matches!(item.kind, UiItemKind::Normal)
+                    && item
+                        .verb
+                        .as_deref()
+                        .is_some_and(|verb| verb.eq_ignore_ascii_case(OPEN_CONTAINING_VERB))
+            });
+        if !open_containing {
+            return false;
+        }
+        let target = menu.paths.first().and_then(|path| {
+            let shortcut = path
+                .extension()
+                .is_some_and(|extension| extension.eq_ignore_ascii_case("lnk"));
+            if shortcut {
+                crate::shell_file_operation::shortcut_target(path)
+            } else {
+                Some(path.clone())
+            }
+        });
+        let Some(target) = target else {
+            return false;
+        };
+        self.close_ctx_menu(cx);
+        let tile = self.state.focused_tile;
+        match target.parent().map(std::path::Path::to_path_buf) {
+            Some(folder) => {
+                self.pending_select = Some((tile, target));
+                self.navigate(tile, folder);
+            }
+            // A drive root has no parent: open it.
+            None => self.navigate(tile, target),
+        }
+        cx.notify();
+        true
+    }
+
     /// Native row: a submenu toggles inline expansion; a leaf invokes the verb.
     fn activate_ctx_native(
         &mut self,
@@ -1892,6 +1983,10 @@ impl App {
                 }
             }
             cx.notify();
+            return;
+        }
+        #[cfg(windows)]
+        if self.open_containing_in_atlas(id, cx) {
             return;
         }
         // Leaf: invoke through the worker, close the overlay immediately.

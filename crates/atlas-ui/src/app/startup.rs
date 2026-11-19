@@ -72,6 +72,14 @@ impl App {
             cx.notify();
         })
         .detach();
+        // Windows light/dark app mode changed: profiles that follow the system
+        // switch to their light or dark theme on the next frame.
+        cx.observe_window_appearance(window, |this, _window, cx| {
+            this.theme_follow_pending = true;
+            this.theme_dirty = true;
+            cx.notify();
+        })
+        .detach();
         // Forward off the foreground executor: the retained ingress queues must
         // remain readable by the OLE modal-loop drag-hover drain as well.
         cx.background_executor()
@@ -95,6 +103,8 @@ impl App {
             })
             .detach();
 
+        #[cfg(windows)]
+        let explorer_choice = explorer_choice_at_startup();
         // Restore previous session tree if available, else create fresh state.
         // If initial_paths were provided (e.g. CLI path or "open in new window"),
         // start a clean session focused on that location rather than restoring older tabs.
@@ -126,6 +136,7 @@ impl App {
         } else {
             AppState::new(settings)
         };
+        let mut initial_select = None;
         if let Some(path) = initial_paths.first().cloned() {
             let path = std::fs::canonicalize(&path).unwrap_or(path);
             #[cfg(windows)]
@@ -137,6 +148,7 @@ impl App {
                     path
                 }
             };
+            let selected_file = path.is_file().then(|| path.clone());
             let path = if path.is_dir() {
                 Some(path)
             } else if path.is_file() {
@@ -154,6 +166,7 @@ impl App {
                         tab.volume_serial = None;
                         state.focused_tile = tile;
                         state.pane_tree.make_active(|id, _| id == tile);
+                        initial_select = selected_file.map(|file| (tile, file));
                     }
                 }
             }
@@ -233,6 +246,9 @@ impl App {
             total_ms = startup_started.elapsed().as_millis(),
             "startup: tag db spawned"
         );
+
+        // The resource limit must be in place before the first heavy job.
+        atlas_core::resources::apply(state.settings.cpu_limit);
 
         // Trigger directory loads for all panes (focused first, rest on demand)
         let list_started = std::time::Instant::now();
@@ -370,7 +386,11 @@ impl App {
         );
 
         let update_tx = tx.clone();
+        let check_updates = state.settings.check_updates;
         rt.spawn(async move {
+            if !check_updates {
+                return;
+            }
             match atlas_core::update::check_for_update(atlas_core::update::APP_VERSION).await {
                 Ok(Some(update)) => {
                     let _ = update_tx.send(BgResult::AppUpdateAvailable {
@@ -749,6 +769,7 @@ impl App {
             content_gen: 0,
             content_cancel: None,
             theme_dirty: true,
+            theme_follow_pending: true,
             theme_preview_before: None,
             settings_theme_previewing: false,
             view_preview_before: None,
@@ -760,6 +781,8 @@ impl App {
             #[cfg(windows)]
             hwnd: hwnd_opt,
             #[cfg(windows)]
+            network: Default::default(),
+            #[cfg(windows)]
             dnd: dnd_opt,
             #[cfg(windows)]
             shell_menu,
@@ -770,6 +793,11 @@ impl App {
             eco_cleared: false,
             converter: None,
             cleanup_panel: None,
+            compare_panel: None,
+            pending_compare: None,
+            git_panel: None,
+            pending_git: None,
+            git_probes: Default::default(),
             vault: None,
             #[cfg(windows)]
             vault_mount: None,
@@ -816,14 +844,16 @@ impl App {
             #[cfg(feature = "provider-host")]
             rename_remote_input: None,
             pending_rename: None,
-            pending_select: None,
+            pending_select: initial_select,
             pending_batch_select: None,
             batch_blink_origin: std::time::Instant::now(),
             batch_blink_visible: true,
             col_widths: details_prefs.widths,
             typed_selection: None,
             #[cfg(windows)]
-            win_e_enabled: atlas_win_space::integration::win_e_enabled().unwrap_or(false),
+            win_e_enabled: explorer_choice.start_page,
+            #[cfg(windows)]
+            explorer_folders: explorer_choice.folders,
             preview_delay: Default::default(),
             details_column_order: details_prefs.order,
             col_resize: None,
@@ -868,4 +898,32 @@ fn migrate_global_recent_folders(state: &mut AppState) {
             profile.set_scoped::<RecentFoldersFeature>(&legacy);
         }
     }
+}
+
+/// Which Explorer windows open Atlas. Win+E turned on before the redirect
+/// agent existed only set the registry override, which recent Windows 11
+/// builds ignore for Win+E; complete that choice once so the shortcut works.
+/// The agent is (re)started off the UI thread when any part is on.
+#[cfg(windows)]
+fn explorer_choice_at_startup() -> atlas_win_space::explorer_redirect::Redirect {
+    use atlas_win_space::explorer_redirect;
+    let mut choice = explorer_redirect::current();
+    let migrate = !explorer_redirect::configured()
+        && atlas_win_space::integration::win_e_enabled().unwrap_or(false);
+    if migrate {
+        choice.start_page = true;
+    }
+    if choice.any() {
+        std::thread::spawn(move || {
+            let result = if migrate {
+                explorer_redirect::set(choice)
+            } else {
+                explorer_redirect::ensure_agent()
+            };
+            if let Err(error) = result {
+                tracing::warn!(%error, "cannot start the Explorer redirect agent");
+            }
+        });
+    }
+    choice
 }

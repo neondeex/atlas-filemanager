@@ -361,6 +361,15 @@ impl App {
                 }
             }
         }
+        // Like Explorer, going up from `\\server\share` shows the server's shares.
+        if let Some(server) = self
+            .tab_data_for(tab_id)
+            .and_then(|td| td.location.fs_dir())
+            .and_then(atlas_core::fs::network::parent)
+        {
+            self.navigate(tab_id, server);
+            return;
+        }
         let parent = self
             .tab_data_for(tab_id)
             .and_then(|td| td.location.ascend());
@@ -404,7 +413,13 @@ impl App {
                         let dest = dir.join(path.file_name().unwrap_or_default());
                         let provider = atlas_core::fs::archive::open(&archive)
                             .ok_or_else(|| anyhow::anyhow!("Cannot open archive"))?;
-                        provider.extract_to(&path, &dest)?;
+                        // Keep the download's Mark-of-the-Web so SmartScreen and
+                        // Protected View still guard what the default app opens.
+                        atlas_core::fs::archive::extract_for_export(
+                            provider.as_ref(),
+                            &path,
+                            &dest,
+                        )?;
                         open::that(dest)?;
                         Ok(())
                     })();

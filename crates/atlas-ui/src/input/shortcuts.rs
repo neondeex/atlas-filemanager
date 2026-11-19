@@ -114,6 +114,48 @@ impl App {
                 return true;
             }
         }
+        if let Some(panel) = self.compare_panel.clone() {
+            if ev.keystroke.key == "escape" {
+                // Closed here: the panel cannot update the App from inside
+                // the App's own key handler.
+                panel.update(cx, |p, _| p.cancel());
+                self.compare_panel = None;
+                window.focus(&self.focus_handle, cx);
+                cx.notify();
+                return true;
+            }
+            if panel.update(cx, |p, cx| p.handle_key(ev, window, cx)) {
+                cx.notify();
+            }
+            // The panel is modal: keys never reach the panes behind it.
+            return true;
+        }
+        if let Some(panel) = self.git_panel.clone() {
+            if ev.keystroke.key == "escape" {
+                // A prompt or confirmation inside the panel closes first; the
+                // panel itself is closed here, never from inside its own update.
+                if !panel.update(cx, |p, cx| p.escape(window, cx)) {
+                    let root = panel.read(cx).repo_root();
+                    if let Some(root) = root {
+                        self.invalidate_git_probe(&root);
+                        self.notify_all_panes(cx);
+                    }
+                    self.git_panel = None;
+                    window.focus(&self.focus_handle, cx);
+                }
+                cx.notify();
+                return true;
+            }
+            // Typing goes to the panel's text fields (commit message, names).
+            if self.any_text_input_focused(window, cx) {
+                return false;
+            }
+            if panel.update(cx, |p, cx| p.handle_key(ev, window, cx)) {
+                cx.notify();
+            }
+            // The panel is modal: keys never reach the panes behind it.
+            return true;
+        }
         if self.command_shortcut_capture.is_some() {
             return self.handle_command_shortcut_key(ev);
         }
@@ -517,7 +559,13 @@ impl App {
                 tab: focused,
                 location: atlas_model::location::Location::RecycleBin,
             }),
+            #[cfg(target_os = "windows")]
+            "net.map-drive" => Some(Action::MapNetworkDrive),
+            "pane.compare" => Some(Action::CompareFolders),
+            "git.open" => Some(Action::OpenGit),
             "view.hidden" => Some(Action::ToggleHidden),
+            "view.theme-toggle" => Some(Action::ToggleThemeAppearance),
+            "view.theme-follow-system" => Some(Action::ToggleThemeFollowSystem),
             "view.vim-mode" => Some(Action::ToggleVimMode),
             "view.inspector" => Some(Action::ToggleInspector),
             "view.branch-view" => Some(Action::ToggleBranchViewFocused),

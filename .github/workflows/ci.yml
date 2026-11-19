@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
 
+# Checks only read the repository; never hand pull requests a write token.
 permissions:
   contents: read
 
@@ -73,3 +74,20 @@ jobs:
           # test-thread stack in debug builds. Match Atlas's 16 MiB UI stack.
           RUST_MIN_STACK: '16777216'
         run: cargo test --workspace --locked --no-fail-fast
+
+  audit:
+    name: dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '1.97.1'
+
+      # Fails on any known vulnerability in Cargo.lock (RustSec database).
+      # Deliberate exceptions live in .cargo/audit.toml with their reason.
+      - name: cargo audit
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit

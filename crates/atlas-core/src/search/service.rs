@@ -187,8 +187,10 @@ pub fn ensure_service_started() -> bool {
             return true;
         }
 
-        // Try starting the installed Windows service first
-        let _ = std::process::Command::new("sc.exe")
+        // Try starting the installed Windows service first. Only
+        // administrators may start it, so from a normal Atlas this usually
+        // fails with "access denied"; the service starts itself at boot.
+        let start = std::process::Command::new("sc.exe")
             .args(["start", "AtlasSearchService"])
             .creation_flags(CREATE_NO_WINDOW)
             .status();
@@ -200,7 +202,18 @@ pub fn ensure_service_started() -> bool {
             }
         }
 
-        // If not running, find the binary and spawn it with --console in the background
+        // An installed service owns the index. A `--console` copy would hold
+        // its single-instance mutex and pipe, so the service quits as soon as
+        // it starts, and without elevation the copy cannot read the MFT
+        // either. Only run one when no service is installed (portable use).
+        const ERROR_SERVICE_DOES_NOT_EXIST: i32 = 1060;
+        let service_installed =
+            matches!(&start, Ok(status) if status.code() != Some(ERROR_SERVICE_DOES_NOT_EXIST));
+        if service_installed {
+            return is_service_available();
+        }
+
+        // No service: find the binary and spawn it with --console in the background
         if let Some(exe_path) = find_search_service_exe() {
             let _ = std::process::Command::new(exe_path)
                 .arg("--console")
@@ -250,8 +263,20 @@ pub fn find_search_service_exe() -> Option<std::path::PathBuf> {
         "atlas-search-service"
     };
 
-    if let Ok(current) = std::env::current_exe() {
-        let mut cur = current.parent();
+    let current = std::env::current_exe().ok()?;
+    let own_dir = current.parent()?;
+    let packaged = own_dir.join(bin_name);
+    if packaged.is_file() {
+        return Some(packaged);
+    }
+    // Release builds only run the service shipped next to Atlas. Walking up
+    // parent folders or trying CWD-relative paths would let anyone who can
+    // write there (`C:\release\`, a downloaded folder) plant an executable.
+    if !cfg!(debug_assertions) {
+        return None;
+    }
+    {
+        let mut cur = Some(own_dir);
         for _ in 0..4 {
             if let Some(dir) = cur {
                 let direct = dir.join(bin_name);
@@ -272,8 +297,8 @@ pub fn find_search_service_exe() -> Option<std::path::PathBuf> {
             }
         }
     }
+    // Development checkouts only (`cargo run` from the repository root).
     let candidates = [
-        bin_name.to_string(),
         format!("target/release/{bin_name}"),
         format!("target/debug/{bin_name}"),
     ];

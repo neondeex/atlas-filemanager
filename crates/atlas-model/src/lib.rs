@@ -12,10 +12,12 @@ pub mod cleanup;
 pub mod cloud_model;
 #[cfg(feature = "provider-host")]
 pub mod cloud_state;
+pub mod compare;
 pub mod edition;
 pub mod ext_model;
 pub mod ext_state;
 pub mod file_entry;
+pub mod git;
 pub mod grouping;
 pub mod layout_tree;
 pub mod location;

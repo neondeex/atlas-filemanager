@@ -576,11 +576,23 @@ impl Worker {
         let id = remote.id.clone();
         let is_oauth = remote.kind.is_oauth();
         let params = match &remote.kind {
-            RemoteKind::Sftp { host, port, user }
-            | RemoteKind::Ftp { host, port, user }
-            | RemoteKind::Smb { host, port, user } => json!({
+            RemoteKind::Sftp { host, port, user } | RemoteKind::Ftp { host, port, user } => json!({
                 "host": host, "port": port.to_string(), "user": user, "pass": secret,
             }),
+            RemoteKind::Smb {
+                host,
+                port,
+                user,
+                domain,
+            } => {
+                let mut params = json!({
+                    "host": host, "port": port.to_string(), "user": user, "pass": secret,
+                });
+                if !domain.is_empty() {
+                    params["domain"] = json!(domain);
+                }
+                params
+            }
             RemoteKind::WebDav { url, vendor, user } => json!({
                 "url": url, "vendor": vendor, "user": user, "pass": secret,
             }),
@@ -672,6 +684,16 @@ impl Worker {
         if let Some(task) = self.listings.remove(&tab) {
             task.abort();
         }
+        // A remote that refused two sign-ins is left alone for a while.
+        let guard_key = crate::fs::network_guard::cloud_key(&id);
+        if let Some(left) = crate::fs::network_guard::paused_for(&guard_key) {
+            let _ = self.bg_tx.send(BgResult::DirListError {
+                tab,
+                op_id,
+                error: crate::fs::network_guard::paused_error(left),
+            });
+            return;
+        }
         let Some(provider) = self
             .require_ready(|e| BgResult::DirListError {
                 tab,
@@ -687,6 +709,7 @@ impl Worker {
             let started = std::time::Instant::now();
             match provider.list(&id, &path).await {
                 Ok(entries) => {
+                    crate::fs::network_guard::record_success(&guard_key);
                     // Mapping and natural sorting large directories never run
                     // on the UI thread or block a Tokio network worker.
                     match tokio::task::spawn_blocking(move || {
@@ -726,11 +749,13 @@ impl Worker {
                     });
                 }
                 Err(e) => {
-                    let _ = bg.send(BgResult::DirListError {
-                        tab,
-                        op_id,
-                        error: e.to_string(),
-                    });
+                    let mut error = e.to_string();
+                    if crate::fs::network_guard::is_sign_in_failure_text(&format!("{e:#}")) {
+                        if let Some(pause) = crate::fs::network_guard::record_failure(&guard_key) {
+                            error = crate::fs::network_guard::paused_error(pause);
+                        }
+                    }
+                    let _ = bg.send(BgResult::DirListError { tab, op_id, error });
                 }
             }
         });

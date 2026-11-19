@@ -21,9 +21,12 @@ pub mod devices;
 mod edition;
 pub mod ext;
 pub mod fs_sync;
+pub(crate) mod git;
 pub(crate) mod icon_loader;
 pub(crate) mod liquid_glass;
 pub mod nav;
+#[cfg(windows)]
+pub(crate) mod network;
 pub mod ops;
 pub mod pane_ops;
 pub mod profiles;
@@ -37,6 +40,16 @@ pub struct App {
     pub(crate) vault_mount: Option<atlas_core::vault::mount::Mounted>,
     pub(crate) converter: Option<crate::ui::converter::Session>,
     pub(crate) cleanup_panel: Option<Entity<crate::ui::cleanup::CleanupPanel>>,
+    /// Folder comparison between the two visible panes.
+    pub(crate) compare_panel: Option<Entity<crate::ui::compare::ComparePanel>>,
+    /// `(left, right)` waiting for a `Context` to mount the compare panel.
+    pub(crate) pending_compare: Option<(std::path::PathBuf, std::path::PathBuf)>,
+    /// Git panel of the repository a folder belongs to.
+    pub(crate) git_panel: Option<Entity<crate::ui::git_panel::GitPanel>>,
+    /// Folder waiting for a window to mount the Git panel.
+    pub(crate) pending_git: Option<std::path::PathBuf>,
+    /// Cached repository probes for the pane headers' branch chips.
+    pub(crate) git_probes: git::GitProbes,
     pub(crate) mounted_volumes: Vec<(PathBuf, u32)>,
     pub(crate) preview_delay: crate::ui::preview_delay::PreviewDelay,
     pub(crate) state: AppState,
@@ -361,6 +374,10 @@ pub struct App {
     /// which `process_actions` lacks). Starts `true` so the restored profile theme
     /// is applied on first paint.
     pub(crate) theme_dirty: bool,
+    /// When set, the next theme apply first re-reads the system light/dark
+    /// appearance (startup, profile switch, OS change) for profiles that
+    /// follow it.
+    pub(crate) theme_follow_pending: bool,
     pub(crate) theme_preview_before: Option<String>,
     /// A Settings theme dropdown is hover-previewing; reverted when it closes.
     pub(crate) settings_theme_previewing: bool,
@@ -385,6 +402,9 @@ pub struct App {
     // Used only on the main (UI) thread.
     #[cfg(windows)]
     pub(crate) hwnd: Option<isize>,
+    /// Native SMB prompts in flight (see `app::network`).
+    #[cfg(windows)]
+    pub(crate) network: crate::app::network::NetworkUi,
     // DnD sub-system: drop target COM object (kept alive), zone registry
     // (updated each render frame while a drag is active), and the action queue
     // (COM vtable pushes, App drains in drain_dnd_queue).
@@ -426,6 +446,9 @@ pub struct App {
     pub(crate) typed_selection: Option<(atlas_model::pane::TabId, String, Instant)>,
     #[cfg(windows)]
     pub(crate) win_e_enabled: bool,
+    /// Folders opened by other apps ("Open file location", ...) open in Atlas.
+    #[cfg(windows)]
+    pub(crate) explorer_folders: bool,
     /// User-facing order for Details metadata columns. Name stays fixed first.
     pub(crate) details_column_order: [DetailsColumn; 3],
     /// Active column-resize drag state (cleared on mouse-up).

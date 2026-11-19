@@ -793,9 +793,9 @@ impl App {
                             {
                                 if let Some((_, pending_path)) = self.pending_select.as_ref() {
                                     let after = ts.selection_paths(is_tree);
-                                    if let Some(idx) =
-                                        after.iter().position(|path| path == pending_path)
-                                    {
+                                    if let Some(idx) = after.iter().position(|path| {
+                                        atlas_core::fs::transfer::paths_equal_ci(path, pending_path)
+                                    }) {
                                         self.pending_select = None;
                                         ts.selection.selected.clear();
                                         ts.selection.selected.insert(idx);
@@ -887,7 +887,12 @@ impl App {
                                 .as_ref()
                                 .filter(|(pane, _)| *pane == tab)
                                 .and_then(|(_, path)| {
-                                    c.entries.iter().position(|entry| &entry.path() == path)
+                                    c.entries.iter().position(|entry| {
+                                        atlas_core::fs::transfer::paths_equal_ci(
+                                            &entry.path(),
+                                            path,
+                                        )
+                                    })
                                 })
                             {
                                 c.selection.clear();
@@ -923,8 +928,55 @@ impl App {
                     });
                     info.notify_panes.push(tab);
                 }
-                BgResult::DirListError { tab, op_id, error } => {
+                BgResult::GitProbe { dir, head } => {
+                    let panes = self.apply_git_probe(dir, head);
+                    info.notify_panes.extend(panes);
+                }
+                BgResult::Network {
+                    tab,
+                    target,
+                    navigate,
+                    outcome,
+                } => {
+                    #[cfg(windows)]
+                    self.apply_network_result(tab, target, navigate, outcome);
+                    #[cfg(not(windows))]
+                    let _ = (tab, target, navigate, outcome);
+                    info.notify_panes
+                        .extend(self.state.tab_states.keys().copied());
+                }
+                BgResult::DirListError {
+                    tab,
+                    op_id,
+                    mut error,
+                } => {
                     tracing::warn!(tab = tab.0, op_id, %error, "directory listing failed");
+                    #[cfg(windows)]
+                    if let Some(minutes) = atlas_core::fs::network_guard::parse_paused(&error) {
+                        error = crate::app::network::paused_text(minutes);
+                    }
+                    if error == atlas_core::fs::network::CREDENTIALS_REQUIRED {
+                        let current = self
+                            .state
+                            .tab_states
+                            .get(&tab)
+                            .is_some_and(|ts| ts.last_nav_op_id == op_id);
+                        let dir = self
+                            .tab_data_for(tab)
+                            .and_then(|td| td.location.fs_dir())
+                            .map(std::path::Path::to_path_buf);
+                        #[cfg(windows)]
+                        if current
+                            && dir
+                                .as_deref()
+                                .is_some_and(|dir| self.request_network_credentials(tab, dir))
+                        {
+                            // The pane keeps loading while Windows asks for credentials.
+                            continue;
+                        }
+                        let _ = (current, dir);
+                        error = rust_i18n::t!("network_err_denied").into_owned();
+                    }
                     if let Some(ts) = self.state.tab_states.get_mut(&tab) {
                         if op_id == ts.last_nav_op_id {
                             ts.load_state = LoadState::Error(error);

@@ -55,7 +55,7 @@ pub(super) fn preview_video(path: &Path) -> PreviewResult {
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
-        cmd.creation_flags(0x0800_0000);
+        cmd.creation_flags(crate::resources::tool_creation_flags(0x0800_0000));
     }
 
     let mut ok = cmd
@@ -80,7 +80,7 @@ pub(super) fn preview_video(path: &Path) -> PreviewResult {
         #[cfg(windows)]
         {
             use std::os::windows::process::CommandExt;
-            retry.creation_flags(0x0800_0000);
+            retry.creation_flags(crate::resources::tool_creation_flags(0x0800_0000));
         }
         ok = retry
             .output()
@@ -178,7 +178,7 @@ fn read_video_info(path: &Path) -> Option<(Option<String>, usize, usize, Option<
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
-        cmd.creation_flags(0x0800_0000);
+        cmd.creation_flags(crate::resources::tool_creation_flags(0x0800_0000));
     }
 
     let output = cmd.output().ok()?;

@@ -141,6 +141,29 @@ pub struct Settings {
     pub icon_style: IconStyle,
     /// Convert / Actions radial menu preferences.
     pub ring: RingPrefs,
+    /// Built-in Git integration: branch chip on repository folders and the
+    /// Git panel. Off until the user turns it on.
+    pub git_integration: bool,
+    /// Git panel: branches grouped into folders by `/` (`feat/x` under `feat`).
+    pub git_branch_tree: bool,
+    /// Git panel: changed files grouped into folders instead of a flat list.
+    pub git_change_tree: bool,
+    /// Most of this PC Atlas may use, in percent (25, 50, 75 or 100). Below
+    /// 100 Windows caps Atlas's CPU time and heavy work runs at low priority.
+    #[serde(default = "default_cpu_limit")]
+    pub cpu_limit: u8,
+    /// Look for a new Atlas version when it starts (one small download of
+    /// the release manifest; nothing about the user is sent).
+    #[serde(default = "default_true")]
+    pub check_updates: bool,
+}
+
+pub const fn default_cpu_limit() -> u8 {
+    100
+}
+
+const fn default_true() -> bool {
+    true
 }
 
 /// Convert / Actions ring preferences. Unknown action ids (from a newer or
@@ -295,6 +318,11 @@ impl Default for Settings {
             getting_started_seen: false,
             vim_mode: false,
             ring: RingPrefs::default(),
+            git_integration: false,
+            git_branch_tree: true,
+            git_change_tree: false,
+            cpu_limit: default_cpu_limit(),
+            check_updates: true,
         }
     }
 }
@@ -397,6 +425,27 @@ mod tests {
 
         let ws: Workspace = serde_json::from_str(json).unwrap();
         assert!(ws.vim_mode);
+    }
+
+    #[test]
+    fn git_integration_is_off_until_turned_on() {
+        assert!(!Settings::default().git_integration);
+        let old: Settings = serde_json::from_str(r#"{"font_size": 13.0}"#).unwrap();
+        assert!(!old.git_integration);
+        let on: Settings = serde_json::from_str(r#"{"git_integration": true}"#).unwrap();
+        assert!(on.git_integration);
+        assert!(on.git_branch_tree && !on.git_change_tree);
+    }
+
+    #[test]
+    fn resource_limit_and_update_check_default_to_previous_behaviour() {
+        let old: Settings = serde_json::from_str(r#"{"font_size": 13.0}"#).unwrap();
+        assert_eq!(old.cpu_limit, 100);
+        assert!(old.check_updates);
+        let set: Settings =
+            serde_json::from_str(r#"{"cpu_limit": 50, "check_updates": false}"#).unwrap();
+        assert_eq!(set.cpu_limit, 50);
+        assert!(!set.check_updates);
     }
 
     #[test]
