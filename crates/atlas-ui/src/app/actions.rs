@@ -930,7 +930,7 @@ impl App {
                     self.copy_paths_as_text(&[path]);
                 }
                 Action::CopyPathsToClipboard(paths) => self.copy_paths_as_text(&paths),
-                #[cfg(windows)]
+                #[cfg(any(windows, target_os = "linux"))]
                 Action::PasteShortcutFocused => self.paste_shortcuts_focused(),
                 Action::Copy(paths) => {
                     #[cfg(feature = "provider-host")]

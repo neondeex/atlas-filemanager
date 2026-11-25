@@ -666,7 +666,7 @@ impl App {
                 let paths = self.selected_paths();
                 (!paths.is_empty()).then_some(Action::CopyPathsToClipboard(paths))
             }
-            #[cfg(windows)]
+            #[cfg(any(windows, target_os = "linux"))]
             "files.paste-shortcut"
                 if active_location.is_some_and(|location| location.fs_dir().is_some()) =>
             {

@@ -18,6 +18,7 @@ pub(crate) type ClipboardRead = (Option<String>, Option<(Vec<PathBuf>, bool)>, b
 pub(crate) enum OsClipboardOp {
     Write(gpui::ClipboardItem),
     Paste(PathBuf),
+    PasteShortcuts(PathBuf),
 }
 
 /// A gpui clipboard read as a `ClipboardRead`. Files come from `text/uri-list`, or
@@ -185,6 +186,79 @@ pub(crate) fn plan_batch_renames(
     first.into_iter().chain(direct).chain(parked).collect()
 }
 
+#[cfg(windows)]
+fn create_shortcut(source: PathBuf, dest: PathBuf) -> Result<PathBuf, atlas_model::ops::OpError> {
+    crate::shell_file_operation::create_shortcut(source, dest)
+}
+
+#[cfg(target_os = "linux")]
+fn create_shortcut(source: PathBuf, dest: PathBuf) -> Result<PathBuf, atlas_model::ops::OpError> {
+    create_symlink_shortcut(&source, &dest, &rust_i18n::t!("shortcut_filename_suffix"))
+}
+
+/// A symbolic link to `source` in `dest`, named like the Windows shortcut but
+/// with the extension kept last so other apps still see the file type:
+/// `notes - Shortcut.txt`, then `notes - Shortcut (2).txt`. Never replaces an
+/// existing entry.
+#[cfg(target_os = "linux")]
+fn create_symlink_shortcut(
+    source: &std::path::Path,
+    dest: &std::path::Path,
+    suffix: &str,
+) -> Result<PathBuf, atlas_model::ops::OpError> {
+    use atlas_model::ops::{OpError, OpErrorKind};
+    let fail = |kind| OpError {
+        path: source.to_path_buf(),
+        kind,
+    };
+    // A link to nothing would only confuse: the source (or, for a link, its
+    // target) may be gone since the copy.
+    #[allow(clippy::disallowed_methods)] // reason: runs on the blocking pool, off the UI thread
+    let meta = std::fs::metadata(source).map_err(|error| {
+        fail(if error.kind() == std::io::ErrorKind::NotFound {
+            OpErrorKind::Gone
+        } else {
+            transfer::io_error_kind(&error)
+        })
+    })?;
+    let file_name = source.file_name().map_or_else(
+        || std::ffi::OsString::from("Root"),
+        std::ffi::OsStr::to_os_string,
+    );
+    let name = std::path::Path::new(&file_name);
+    let (stem, ext) = match (meta.is_dir(), name.file_stem(), name.extension()) {
+        (false, Some(stem), Some(ext)) => (stem.to_os_string(), Some(ext.to_os_string())),
+        _ => (file_name.clone(), None),
+    };
+    for counter in 1u32.. {
+        let mut link_name = stem.clone();
+        link_name.push(format!(" - {suffix}"));
+        if counter > 1 {
+            link_name.push(format!(" ({counter})"));
+        }
+        if let Some(ext) = &ext {
+            link_name.push(".");
+            link_name.push(ext);
+        }
+        let link = dest.join(link_name);
+        match std::os::unix::fs::symlink(source, &link) {
+            Ok(()) => return Ok(link),
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
+            Err(error) => return Err(fail(transfer::io_error_kind(&error))),
+        }
+    }
+    unreachable!("u32 counter ran out")
+}
+
+/// What Paste transfers: paths, optional target names, whether it is a cut, and where it came from.
+#[cfg(not(windows))]
+type PasteSource = (
+    Vec<PathBuf>,
+    Option<Vec<std::ffi::OsString>>,
+    bool,
+    TransferOrigin,
+);
+
 fn same_path(a: &std::path::Path, b: &std::path::Path) -> bool {
     transfer::paths_equal_ci(a, b)
 }
@@ -278,7 +352,9 @@ impl App {
         });
     }
 
-    #[cfg(windows)]
+    /// Paste shortcut: a `.lnk` on Windows, a symbolic link on Linux, for each
+    /// file on the clipboard, in the focused folder.
+    #[cfg(any(windows, target_os = "linux"))]
     pub(crate) fn paste_shortcuts_focused(&mut self) {
         let Some(dest) = self
             .tab_data_for(self.state.focused_tile)
@@ -287,22 +363,59 @@ impl App {
         else {
             return;
         };
-        let Some(files) = crate::dnd::windows::ole_clipboard::get_clipboard_files() else {
+        #[cfg(windows)]
+        if let Some(files) = crate::dnd::windows::ole_clipboard::get_clipboard_files() {
+            self.create_shortcuts(dest, files.paths);
+        }
+        // Without data-control (GNOME) the maintenance loop reads the clipboard
+        // through gpui, as for Paste.
+        #[cfg(target_os = "linux")]
+        if self.clipboard_through_gpui() {
+            self.queue_os_clipboard(OsClipboardOp::PasteShortcuts(dest));
+        } else {
+            self.paste_shortcuts_read(dest, None);
+        }
+    }
+
+    /// Paste shortcut on Linux with the clipboard read (`already_read`, as for
+    /// `paste_files_read`).
+    #[cfg(target_os = "linux")]
+    pub(crate) fn paste_shortcuts_read(
+        &mut self,
+        dest: PathBuf,
+        already_read: Option<ClipboardRead>,
+    ) {
+        let Some((paths, ..)) = self.clipboard_paste_source(already_read) else {
             return;
         };
-        if files.paths.is_empty() {
+        // Files copied from a cloud or remote location have no local path to link to.
+        if self
+            .state
+            .ops
+            .clipboard
+            .as_ref()
+            .is_some_and(|c| c.remote_id.is_some() && c.paths == paths)
+        {
+            return;
+        }
+        self.create_shortcuts(dest, paths);
+    }
+
+    #[cfg(any(windows, target_os = "linux"))]
+    fn create_shortcuts(&mut self, dest: PathBuf, paths: Vec<PathBuf>) {
+        if paths.is_empty() {
             return;
         }
         let affected_tabs = self.affected_tabs_for_path(&dest);
         let (id, cancel) = self.state.ops.start_op_labeled(
-            files.paths.len(),
+            paths.len(),
             rust_i18n::t!("op_creating_shortcuts").to_string(),
         );
         let tx = self.tx.clone();
         self.rt.spawn(async move {
-            let total = files.paths.len() as u64;
+            let total = paths.len() as u64;
             let mut errors = Vec::new();
-            for (index, source) in files.paths.into_iter().enumerate() {
+            for (index, source) in paths.into_iter().enumerate() {
                 if cancel.load(std::sync::atomic::Ordering::Relaxed) {
                     errors.push(atlas_model::ops::OpError {
                         path: source,
@@ -320,11 +433,7 @@ impl App {
                 });
                 let target = dest.clone();
                 let error_path = source.clone();
-                match tokio::task::spawn_blocking(move || {
-                    crate::shell_file_operation::create_shortcut(source, target)
-                })
-                .await
-                {
+                match tokio::task::spawn_blocking(move || create_shortcut(source, target)).await {
                     Ok(Ok(_)) => {}
                     Ok(Err(error)) => errors.push(error),
                     Err(error) => errors.push(atlas_model::ops::OpError {
@@ -659,6 +768,87 @@ impl App {
         });
     }
 
+    /// What Paste would transfer on Linux and macOS: files another app put on
+    /// the system clipboard, or Atlas's own cut/copy. Clears a stale internal
+    /// clipboard (see `system_clipboard_replaced`). `already_read` is the
+    /// clipboard when the caller read it through gpui.
+    #[cfg(not(windows))]
+    fn clipboard_paste_source(
+        &mut self,
+        already_read: Option<ClipboardRead>,
+    ) -> Option<PasteSource> {
+        let read_now = || {
+            read_system_clipboard(|cb| {
+                let text = cb.get_text();
+                let mut answered = clipboard_answered(&text);
+                let text = text.ok();
+                let from_text = text.as_deref().and_then(|text| {
+                    let (paths, ext_cut) = crate::dnd::parse_uri_list_with_cut(text);
+                    (!paths.is_empty()).then_some((paths, ext_cut))
+                });
+                // Also check file_list in case the external app only exposed a URI list.
+                let files = from_text.or_else(|| {
+                    let list = cb.get().file_list();
+                    answered &= clipboard_answered(&list);
+                    list.ok()
+                        .filter(|paths| !paths.is_empty())
+                        .map(|paths| (paths, false))
+                });
+                Some((text, files, answered))
+            })
+        };
+        let read = already_read.map_or_else(read_now, |read| Ok(Some(read)));
+        let timed_out = read.is_err();
+        let (sys_text, sys_files, readable) = read.ok().flatten().unwrap_or_default();
+
+        match sys_files {
+            Some((sys_paths, ext_cut)) => {
+                if let Some(internal) = &self.state.ops.clipboard {
+                    if internal.paths == sys_paths {
+                        Some((
+                            internal.paths.clone(),
+                            internal.target_names.clone(),
+                            internal.is_cut,
+                            TransferOrigin::Paste,
+                        ))
+                    } else {
+                        let origin = if ext_cut {
+                            TransferOrigin::PasteExternalCut
+                        } else {
+                            TransferOrigin::Paste
+                        };
+                        Some((sys_paths, None, ext_cut, origin))
+                    }
+                } else {
+                    let origin = if ext_cut {
+                        TransferOrigin::PasteExternalCut
+                    } else {
+                        TransferOrigin::Paste
+                    };
+                    Some((sys_paths, None, ext_cut, origin))
+                }
+            }
+            None => {
+                let internal = self.state.ops.clipboard.as_ref();
+                let is_remote = internal.and_then(|c| c.remote_id.as_ref()).is_some();
+                let offered = internal.is_some_and(|c| c.on_system_clipboard);
+                if system_clipboard_replaced(timed_out, readable, sys_text.as_deref(), offered)
+                    && !is_remote
+                {
+                    self.state.ops.clipboard = None;
+                }
+                self.state.ops.clipboard.as_ref().map(|c| {
+                    (
+                        c.paths.clone(),
+                        c.target_names.clone(),
+                        c.is_cut,
+                        TransferOrigin::Paste,
+                    )
+                })
+            }
+        }
+    }
+
     pub(crate) fn paste_files(&mut self, dest: PathBuf) {
         // Without data-control (GNOME) gpui reads the clipboard; that needs a gpui
         // context, so the maintenance loop does it and calls `paste_files_read`.
@@ -703,78 +893,7 @@ impl App {
             }
         };
         #[cfg(not(windows))]
-        let source = {
-            let read_now = || {
-                read_system_clipboard(|cb| {
-                    let text = cb.get_text();
-                    let mut answered = clipboard_answered(&text);
-                    let text = text.ok();
-                    let from_text = text.as_deref().and_then(|text| {
-                        let (paths, ext_cut) = crate::dnd::parse_uri_list_with_cut(text);
-                        (!paths.is_empty()).then_some((paths, ext_cut))
-                    });
-                    // Also check file_list in case the external app only exposed a URI list.
-                    let files = from_text.or_else(|| {
-                        let list = cb.get().file_list();
-                        answered &= clipboard_answered(&list);
-                        list.ok()
-                            .filter(|paths| !paths.is_empty())
-                            .map(|paths| (paths, false))
-                    });
-                    Some((text, files, answered))
-                })
-            };
-            let read = already_read.map_or_else(read_now, |read| Ok(Some(read)));
-            let timed_out = read.is_err();
-            let (sys_text, sys_files, readable) = read.ok().flatten().unwrap_or_default();
-
-            match sys_files {
-                Some((sys_paths, ext_cut)) => {
-                    if let Some(internal) = &self.state.ops.clipboard {
-                        if internal.paths == sys_paths {
-                            Some((
-                                internal.paths.clone(),
-                                internal.target_names.clone(),
-                                internal.is_cut,
-                                TransferOrigin::Paste,
-                            ))
-                        } else {
-                            let origin = if ext_cut {
-                                TransferOrigin::PasteExternalCut
-                            } else {
-                                TransferOrigin::Paste
-                            };
-                            Some((sys_paths, None, ext_cut, origin))
-                        }
-                    } else {
-                        let origin = if ext_cut {
-                            TransferOrigin::PasteExternalCut
-                        } else {
-                            TransferOrigin::Paste
-                        };
-                        Some((sys_paths, None, ext_cut, origin))
-                    }
-                }
-                None => {
-                    let internal = self.state.ops.clipboard.as_ref();
-                    let is_remote = internal.and_then(|c| c.remote_id.as_ref()).is_some();
-                    let offered = internal.is_some_and(|c| c.on_system_clipboard);
-                    if system_clipboard_replaced(timed_out, readable, sys_text.as_deref(), offered)
-                        && !is_remote
-                    {
-                        self.state.ops.clipboard = None;
-                    }
-                    self.state.ops.clipboard.as_ref().map(|c| {
-                        (
-                            c.paths.clone(),
-                            c.target_names.clone(),
-                            c.is_cut,
-                            TransferOrigin::Paste,
-                        )
-                    })
-                }
-            }
-        };
+        let source = self.clipboard_paste_source(already_read);
 
         let Some((paths, target_names, is_cut, origin)) = source else {
             return;
@@ -837,6 +956,10 @@ impl App {
                 OsClipboardOp::Paste(dest) => {
                     let read = gpui_clipboard_read(cx.read_from_clipboard());
                     self.paste_files_read(dest, Some(read));
+                }
+                OsClipboardOp::PasteShortcuts(dest) => {
+                    let read = gpui_clipboard_read(cx.read_from_clipboard());
+                    self.paste_shortcuts_read(dest, Some(read));
                 }
             }
         }
@@ -1485,5 +1608,46 @@ mod linux_clipboard {
                 file_offers(&paths, false).map(|(mime, _)| MimeType::Specific(mime.into()))
             );
         }
+    }
+}
+
+#[cfg(all(test, target_os = "linux"))]
+#[allow(clippy::disallowed_methods)] // reason: tests set up scratch folders synchronously
+mod symlink_shortcut_tests {
+    use super::create_symlink_shortcut;
+
+    #[test]
+    fn links_keep_the_extension_and_never_replace_an_entry() {
+        let root = std::env::temp_dir().join(format!("atlas-shortcut-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let dest = root.join("dest");
+        std::fs::create_dir_all(&dest).unwrap();
+        let file = root.join("notes.txt");
+        std::fs::write(&file, "hello").unwrap();
+        let folder = root.join("photos.2024");
+        std::fs::create_dir(&folder).unwrap();
+
+        let first = create_symlink_shortcut(&file, &dest, "Shortcut").unwrap();
+        let second = create_symlink_shortcut(&file, &dest, "Shortcut").unwrap();
+        let dir_link = create_symlink_shortcut(&folder, &dest, "Shortcut").unwrap();
+
+        assert_eq!(first, dest.join("notes - Shortcut.txt"));
+        assert_eq!(second, dest.join("notes - Shortcut (2).txt"));
+        // A folder's dot is part of its name, not an extension.
+        assert_eq!(dir_link, dest.join("photos.2024 - Shortcut"));
+        assert_eq!(std::fs::read_link(&first).unwrap(), file);
+        assert_eq!(std::fs::read_to_string(&second).unwrap(), "hello");
+        assert!(dir_link.is_dir());
+
+        let gone = root.join("gone.txt");
+        let err = create_symlink_shortcut(&gone, &dest, "Shortcut").unwrap_err();
+        assert_eq!(err.kind, atlas_model::ops::OpErrorKind::Gone);
+        // A link whose target is gone gets no second dangling link either.
+        let dangling = root.join("dangling.txt");
+        std::os::unix::fs::symlink(&gone, &dangling).unwrap();
+        let err = create_symlink_shortcut(&dangling, &dest, "Shortcut").unwrap_err();
+        assert_eq!(err.kind, atlas_model::ops::OpErrorKind::Gone);
+        assert!(std::fs::symlink_metadata(dest.join("dangling - Shortcut.txt")).is_err());
+        std::fs::remove_dir_all(&root).unwrap();
     }
 }
